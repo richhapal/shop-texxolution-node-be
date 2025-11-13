@@ -4,6 +4,17 @@
 > **Version:** 2.0  
 > **Changes:** Removed inventory management, added public endpoints, enhanced security for pricing information
 
+## 🌐 Base URL
+
+**Staging/Production:** `https://shop-texxolution-node-be.onrender.com`  
+**Development:** `http://localhost:8080`
+
+All API endpoints should be prefixed with the base URL. For example:
+
+- Health Check: `https://shop-texxolution-node-be.onrender.com/health`
+- Public Products: `https://shop-texxolution-node-be.onrender.com/api/public/products`
+- Dashboard Login: `https://shop-texxolution-node-be.onrender.com/api/dashboard/auth/login`
+
 ## 🌐 Public Endpoints (No Authentication Required)
 
 ### 1. Health Check
