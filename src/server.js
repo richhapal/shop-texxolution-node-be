@@ -2,6 +2,10 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
+// Routes
+// Import route modules
+const publicRoutes = require("./routes/public/index");
+const dashboardRoutes = require("./routes/dashboard/index");
 
 // Load environment variables
 dotenv.config();
@@ -43,11 +47,6 @@ app.get("/health", (req, res) => {
     environment: process.env.NODE_ENV,
   });
 });
-
-// Routes
-// Import route modules
-const publicRoutes = require("./routes/public/index");
-const dashboardRoutes = require("./routes/dashboard/index");
 
 // Mount routes
 app.use("/api/public", publicRoutes);
