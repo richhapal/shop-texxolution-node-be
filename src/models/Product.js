@@ -12,6 +12,13 @@ const ProductSchema = new Schema(
       trim: true,
       index: true,
     },
+    uniqueId: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      index: true,
+    },
     name: {
       type: String,
       required: true,
@@ -357,6 +364,35 @@ ProductSchema.virtual("isAvailable").get(function () {
   return this.status === "active";
 });
 
+// Helper function to generate unique ID from product name
+function generateUniqueId(name, category) {
+  // Remove special characters and convert to lowercase
+  const cleanName = name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, "")
+    .replace(/\s+/g, "-")
+    .trim();
+
+  // Shorten category for ID
+  const categoryShort = category
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "")
+    .substring(0, 8);
+
+  // Add timestamp for uniqueness
+  const timestamp = Date.now().toString().slice(-6);
+
+  return `${cleanName}-${categoryShort}-${timestamp}`;
+}
+
+// Pre-save middleware to generate uniqueId
+ProductSchema.pre("save", function (next) {
+  if (this.isNew && !this.uniqueId) {
+    this.uniqueId = generateUniqueId(this.name, this.category);
+  }
+  next();
+});
+
 // Pre-save middleware to ensure categoryData structure
 ProductSchema.pre("save", function (next) {
   if (this.isNew || this.isModified("category")) {
@@ -510,4 +546,4 @@ ProductSchema.methods.validateCategoryData = function () {
   return errors;
 };
 
-module.exports = mongoose.model("Product", ProductSchema);
+module.exports = mongoose.model("TexxolutionProduct", ProductSchema);

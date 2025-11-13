@@ -272,4 +272,4 @@ EnquirySchema.methods.assignTo = function (userId) {
   return this.save();
 };
 
-module.exports = mongoose.model("Enquiry", EnquirySchema);
+module.exports = mongoose.model("TexxolutionEnquiry", EnquirySchema);

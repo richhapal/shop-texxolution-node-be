@@ -414,4 +414,4 @@ QuotationSchema.methods.createRevision = function (changes, userId) {
   return this.save();
 };
 
-module.exports = mongoose.model("Quotation", QuotationSchema);
+module.exports = mongoose.model("TexxolutionQuotation", QuotationSchema);

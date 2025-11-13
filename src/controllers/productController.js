@@ -1,4 +1,5 @@
 const Product = require("../models/Product");
+const { ProductCache } = require("../utils/redisCache");
 
 /**
  * Get all active products with optional filtering
@@ -72,7 +73,7 @@ const getProducts = async (req, res) => {
       });
     }
 
-    // Execute query with pagination
+    // Execute query with pagination (no caching for lists)
     const [products, total] = await Promise.all([
       Product.find(filter)
         .select("-vendor -createdBy -updatedBy -pricing")
@@ -89,22 +90,28 @@ const getProducts = async (req, res) => {
     const hasNextPage = pageNumber < totalPages;
     const hasPrevPage = pageNumber > 1;
 
+    // Prepare products with availability
+    const processedProducts = products.map((product) => ({
+      ...product,
+      isAvailable: product.status === "active",
+    }));
+
+    // Prepare pagination data
+    const paginationData = {
+      currentPage: pageNumber,
+      totalPages,
+      totalProducts: total,
+      hasNextPage,
+      hasPrevPage,
+      limit: limitNumber,
+    };
+
     res.json({
       success: true,
       message: "Products retrieved successfully.",
       data: {
-        products: products.map((product) => ({
-          ...product,
-          isAvailable: product.status === "active",
-        })),
-        pagination: {
-          currentPage: pageNumber,
-          totalPages,
-          totalProducts: total,
-          hasNextPage,
-          hasPrevPage,
-          limit: limitNumber,
-        },
+        products: processedProducts,
+        pagination: paginationData,
       },
     });
   } catch (error) {
@@ -117,15 +124,27 @@ const getProducts = async (req, res) => {
 };
 
 /**
- * Get single product details by ID
+ * Get single product details by uniqueId only
  */
 const getProductById = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params; // This should be uniqueId
+    let product = null;
 
-    const product = await Product.findOne({ _id: id, status: "active" })
-      .select("-vendor -createdBy -updatedBy -pricing")
-      .lean();
+    // Try cache first
+    product = await ProductCache.getProductByUniqueId(id);
+
+    if (!product) {
+      // Get from database by uniqueId
+      product = await Product.findOne({ uniqueId: id, status: "active" })
+        .select("-vendor -createdBy -updatedBy -pricing")
+        .lean();
+
+      if (product) {
+        // Cache the result
+        await ProductCache.setProductDetail(product);
+      }
+    }
 
     if (!product) {
       return res.status(404).json({

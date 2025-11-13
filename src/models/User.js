@@ -300,4 +300,4 @@ UserSchema.statics.createAdmin = async function (userData) {
   return this.create(adminData);
 };
 
-module.exports = mongoose.model("User", UserSchema);
+module.exports = mongoose.model("TexxolutionUser", UserSchema);

@@ -1,4 +1,5 @@
 const Product = require("../models/Product");
+const { ProductCache } = require("../utils/redisCache");
 const {
   uploadMultipleImages,
   uploadFileFromPath,
@@ -497,6 +498,9 @@ const updateProduct = async (req, res) => {
       });
     }
 
+    // Invalidate product caches
+    await ProductCache.invalidateProductCaches(product.uniqueId);
+
     res.json({
       success: true,
       message: "Product updated successfully.",
@@ -593,6 +597,9 @@ const deleteProduct = async (req, res) => {
     product.updatedBy = req.user._id;
     await product.save();
 
+    // Invalidate product caches
+    await ProductCache.invalidateProductCaches(product.uniqueId);
+
     res.json({
       success: true,
       message: "Product deleted successfully.",
@@ -652,6 +659,9 @@ const bulkUpdateProducts = async (req, res) => {
       { runValidators: true }
     );
 
+    // Invalidate all product caches since multiple products were updated
+    await ProductCache.clearAllProductCaches();
+
     res.json({
       success: true,
       message: `${result.modifiedCount} products updated successfully.`,
@@ -694,15 +704,17 @@ const getProductStats = async (req, res) => {
         .populate("createdBy", "name"),
     ]);
 
+    const statsData = {
+      total: totalProducts,
+      byStatus: productsByStatus,
+      byCategory: productsByCategory,
+      recent: recentProducts,
+    };
+
     res.json({
       success: true,
       message: "Product statistics retrieved successfully.",
-      data: {
-        total: totalProducts,
-        byStatus: productsByStatus,
-        byCategory: productsByCategory,
-        recent: recentProducts,
-      },
+      data: statsData,
     });
   } catch (error) {
     console.error("Get product stats error:", error);

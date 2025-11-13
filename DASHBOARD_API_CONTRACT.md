@@ -30,6 +30,7 @@ GET /api/public/products
 ```
 
 **Query Parameters:**
+
 - `page` (number, default: 1) - Page number for pagination
 - `limit` (number, default: 12) - Number of products per page
 - `category` (string) - Filter by product category
@@ -57,7 +58,9 @@ GET /api/public/products
         "description": "High-quality cotton fabric perfect for garments.",
         "images": {
           "main": "https://r2-domain.com/products/TEX001/images/main.jpg",
-          "gallery": ["https://r2-domain.com/products/TEX001/images/gallery1.jpg"]
+          "gallery": [
+            "https://r2-domain.com/products/TEX001/images/gallery1.jpg"
+          ]
         },
         "composition": "100% Cotton",
         "color": "White",
@@ -199,16 +202,19 @@ Content-Type: application/json
 ## 🔄 Recent Changes (v2.0)
 
 ### Removed Features:
+
 - ❌ **Inventory Management**: No longer tracking stock levels (inStock, reserved, trackInventory)
 - ❌ **Low Stock Alerts**: Removed from product statistics
 - ❌ **Stock-based Availability**: Products are now available based on status only
 
 ### Enhanced Security:
+
 - 🔒 **Public API Protection**: Pricing information is never exposed in public endpoints
 - 🔒 **Field Exclusion**: Vendor details and internal tracking data hidden from public
 - 🔒 **Role-based Access**: Dashboard endpoints require proper authentication and authorization
 
 ### New Features:
+
 - ✅ **Public Product Catalog**: Browse products without authentication
 - ✅ **Public Enquiry System**: Submit enquiries without registration
 - ✅ **Simplified Availability**: Products are available when status = "active"
@@ -733,9 +739,6 @@ Access: Admin, Editor
 {
   "name": "Updated Product Name",
   "description": "Updated description",
-  "pricing": {
-    "basePrice": 30.0
-  },
   "status": "active"
 }
 ```
@@ -1616,6 +1619,7 @@ Access: Admin, Editor
 ## 📝 Notes
 
 ### General Guidelines:
+
 1. **Rate Limiting:** Authentication endpoints have rate limiting (5 attempts per 15 minutes)
 2. **File Size Limits:** Images: 5MB, Documents: 10MB
 3. **Pagination:** Default page size is 20, maximum is 100
@@ -1624,24 +1628,28 @@ Access: Admin, Editor
 6. **File Storage:** Files are stored in Cloudflare R2 with public URLs
 
 ### Security & Privacy:
+
 7. **Public API Security:** Pricing, vendor, and internal data are never exposed in public endpoints
 8. **Authentication:** All dashboard endpoints require valid JWT tokens
 9. **Authorization:** Role-based access control enforced (admin, editor, viewer)
 10. **Data Validation:** All inputs are validated and sanitized
 
 ### Product Availability:
+
 11. **Simple Availability Logic:** Products are available when status = "active"
 12. **No Inventory Tracking:** Stock levels are not managed by the system
 13. **Category-Specific Data:** Each product category can have custom fields in categoryData
 14. **SEO Optimization:** All products support SEO metadata for search engines
 
 ### File Management:
+
 15. **Image Processing:** Automatic optimization and resizing for web delivery
 16. **Cloudflare R2:** S3-compatible object storage with global CDN
 17. **Secure Upload:** Presigned URLs for direct browser uploads
 18. **File Validation:** MIME type and size validation on upload
 
 ### Development:
+
 19. **Environment Variables:** Secure configuration via .env files
 20. **MongoDB Atlas:** Cloud database with automatic backups
 21. **Error Logging:** Comprehensive logging for debugging and monitoring
