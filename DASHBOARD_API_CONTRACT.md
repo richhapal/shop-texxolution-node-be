@@ -1,4 +1,220 @@
-# Dashboard API Contract Documentation
+# Shop Texxolution API Contract Documentation
+
+> **Updated:** November 13, 2025  
+> **Version:** 2.0  
+> **Changes:** Removed inventory management, added public endpoints, enhanced security for pricing information
+
+## 🌐 Public Endpoints (No Authentication Required)
+
+### 1. Health Check
+
+```http
+GET /health
+```
+
+**Success Response (200):**
+
+```json
+{
+  "status": "OK",
+  "message": "Server is running",
+  "timestamp": "2024-11-13T10:30:00.000Z",
+  "environment": "development"
+}
+```
+
+### 2. Get Public Products
+
+```http
+GET /api/public/products
+```
+
+**Query Parameters:**
+- `page` (number, default: 1) - Page number for pagination
+- `limit` (number, default: 12) - Number of products per page
+- `category` (string) - Filter by product category
+- `search` (string) - Search in name, description, and tags
+- `sort` (string) - Sort by fields (e.g., "name", "-createdAt", "category")
+- `minPrice` (number) - Minimum price filter (not used in public API)
+- `maxPrice` (number) - Maximum price filter (not used in public API)
+- `color` (string) - Filter by color
+- `gsm` (number) - Filter by GSM value
+- `tags` (string) - Comma-separated tags to filter by
+
+**Success Response (200):**
+
+```json
+{
+  "success": true,
+  "message": "Products retrieved successfully.",
+  "data": {
+    "products": [
+      {
+        "_id": "674b123456789abc12345678",
+        "sku": "TEX001",
+        "name": "Premium Cotton Fabric",
+        "category": "Fabric (Finished)",
+        "description": "High-quality cotton fabric perfect for garments.",
+        "images": {
+          "main": "https://r2-domain.com/products/TEX001/images/main.jpg",
+          "gallery": ["https://r2-domain.com/products/TEX001/images/gallery1.jpg"]
+        },
+        "composition": "100% Cotton",
+        "color": "White",
+        "width": "60 inches",
+        "gsm": 180,
+        "finish": "Mercerized",
+        "application": "Shirting, Bedding",
+        "moq": 100,
+        "leadTime": "2-3 weeks",
+        "tags": ["cotton", "premium", "shirting"],
+        "status": "active",
+        "isAvailable": true,
+        "createdAt": "2024-11-13T03:30:00.000Z",
+        "updatedAt": "2024-11-13T03:30:00.000Z"
+      }
+    ],
+    "pagination": {
+      "currentPage": 1,
+      "totalPages": 5,
+      "totalProducts": 50,
+      "hasNextPage": true,
+      "hasPrevPage": false,
+      "limit": 12
+    }
+  }
+}
+```
+
+**Note:** Public endpoints do not expose pricing information, vendor details, or internal tracking data for security reasons.
+
+### 3. Get Public Product by ID
+
+```http
+GET /api/public/products/:id
+```
+
+**Success Response (200):**
+
+```json
+{
+  "success": true,
+  "message": "Product retrieved successfully.",
+  "data": {
+    "product": {
+      "_id": "674b123456789abc12345678",
+      "sku": "TEX001",
+      "name": "Premium Cotton Fabric",
+      "category": "Fabric (Finished)",
+      "description": "High-quality cotton fabric perfect for garments.",
+      "images": {
+        "main": "https://r2-domain.com/products/TEX001/images/main.jpg",
+        "gallery": ["https://r2-domain.com/products/TEX001/images/gallery1.jpg"]
+      },
+      "composition": "100% Cotton",
+      "color": "White",
+      "width": "60 inches",
+      "gsm": 180,
+      "finish": "Mercerized",
+      "application": "Shirting, Bedding",
+      "moq": 100,
+      "leadTime": "2-3 weeks",
+      "tags": ["cotton", "premium", "shirting"],
+      "specSheet": "https://r2-domain.com/products/TEX001/files/spec.pdf",
+      "status": "active",
+      "isAvailable": true,
+      "categoryData": {
+        "fabricType": "Woven",
+        "threadCount": "120x80",
+        "shrinkage": "3%",
+        "washCare": "Machine wash cold"
+      },
+      "seo": {
+        "metaTitle": "Premium Cotton Fabric - TEX001",
+        "metaDescription": "High-quality cotton fabric for premium garments",
+        "keywords": ["cotton", "fabric", "premium"]
+      },
+      "createdAt": "2024-11-13T03:30:00.000Z",
+      "updatedAt": "2024-11-13T03:30:00.000Z"
+    }
+  }
+}
+```
+
+### 4. Submit Enquiry
+
+```http
+POST /api/public/enquiries
+Content-Type: application/json
+```
+
+**Request Body:**
+
+```json
+{
+  "companyName": "ABC Textiles Ltd",
+  "contactPerson": "John Doe",
+  "email": "john@abctextiles.com",
+  "phone": "+91-9876543210",
+  "products": [
+    {
+      "productId": "674b123456789abc12345678",
+      "quantity": 1000,
+      "unit": "meters",
+      "specifications": "Custom requirements here"
+    }
+  ],
+  "message": "We are interested in bulk purchase of this fabric.",
+  "urgency": "medium"
+}
+```
+
+**Success Response (201):**
+
+```json
+{
+  "success": true,
+  "message": "Enquiry submitted successfully.",
+  "data": {
+    "enquiry": {
+      "_id": "674b123456789abc12345679",
+      "enquiryNo": "ENQ-2024-001",
+      "companyName": "ABC Textiles Ltd",
+      "contactPerson": "John Doe",
+      "email": "john@abctextiles.com",
+      "phone": "+91-9876543210",
+      "status": "new",
+      "urgency": "medium",
+      "totalProducts": 1,
+      "submittedAt": "2024-11-13T03:30:00.000Z"
+    }
+  }
+}
+```
+
+---
+
+## Dashboard API Contract Documentation
+
+## 🔄 Recent Changes (v2.0)
+
+### Removed Features:
+- ❌ **Inventory Management**: No longer tracking stock levels (inStock, reserved, trackInventory)
+- ❌ **Low Stock Alerts**: Removed from product statistics
+- ❌ **Stock-based Availability**: Products are now available based on status only
+
+### Enhanced Security:
+- 🔒 **Public API Protection**: Pricing information is never exposed in public endpoints
+- 🔒 **Field Exclusion**: Vendor details and internal tracking data hidden from public
+- 🔒 **Role-based Access**: Dashboard endpoints require proper authentication and authorization
+
+### New Features:
+- ✅ **Public Product Catalog**: Browse products without authentication
+- ✅ **Public Enquiry System**: Submit enquiries without registration
+- ✅ **Simplified Availability**: Products are available when status = "active"
+- ✅ **Enhanced Documentation**: Complete API contract with examples
+
+---
 
 ## Authentication & Authorization
 
@@ -414,18 +630,31 @@ Authorization: Bearer <jwt-token>
   "success": true,
   "message": "Product statistics retrieved successfully.",
   "data": {
-    "totalProducts": 150,
-    "activeProducts": 120,
-    "draftProducts": 20,
-    "discontinuedProducts": 10,
-    "categoryCounts": {
-      "Cotton": 50,
-      "Silk": 30,
-      "Wool": 25,
-      "Synthetic": 20
-    },
-    "lowStockProducts": 15,
-    "outOfStockProducts": 5
+    "total": 150,
+    "byStatus": [
+      { "_id": "active", "count": 120 },
+      { "_id": "draft", "count": 20 },
+      { "_id": "inactive", "count": 10 }
+    ],
+    "byCategory": [
+      { "_id": "Fabric (Finished)", "count": 50 },
+      { "_id": "Yarn", "count": 30 },
+      { "_id": "Denim", "count": 25 },
+      { "_id": "Garments", "count": 20 }
+    ],
+    "recent": [
+      {
+        "_id": "674b123456789abc12345678",
+        "name": "Premium Cotton Fabric",
+        "sku": "TEX001",
+        "status": "active",
+        "createdAt": "2024-11-13T03:30:00.000Z",
+        "createdBy": {
+          "_id": "674b123456789abc12345679",
+          "name": "Admin User"
+        }
+      }
+    ]
   }
 }
 ```
@@ -1386,9 +1615,34 @@ Access: Admin, Editor
 
 ## 📝 Notes
 
+### General Guidelines:
 1. **Rate Limiting:** Authentication endpoints have rate limiting (5 attempts per 15 minutes)
 2. **File Size Limits:** Images: 5MB, Documents: 10MB
 3. **Pagination:** Default page size is 20, maximum is 100
 4. **Date Formats:** All dates are in ISO 8601 format
 5. **Currency:** All monetary values are in the specified currency (default: USD)
 6. **File Storage:** Files are stored in Cloudflare R2 with public URLs
+
+### Security & Privacy:
+7. **Public API Security:** Pricing, vendor, and internal data are never exposed in public endpoints
+8. **Authentication:** All dashboard endpoints require valid JWT tokens
+9. **Authorization:** Role-based access control enforced (admin, editor, viewer)
+10. **Data Validation:** All inputs are validated and sanitized
+
+### Product Availability:
+11. **Simple Availability Logic:** Products are available when status = "active"
+12. **No Inventory Tracking:** Stock levels are not managed by the system
+13. **Category-Specific Data:** Each product category can have custom fields in categoryData
+14. **SEO Optimization:** All products support SEO metadata for search engines
+
+### File Management:
+15. **Image Processing:** Automatic optimization and resizing for web delivery
+16. **Cloudflare R2:** S3-compatible object storage with global CDN
+17. **Secure Upload:** Presigned URLs for direct browser uploads
+18. **File Validation:** MIME type and size validation on upload
+
+### Development:
+19. **Environment Variables:** Secure configuration via .env files
+20. **MongoDB Atlas:** Cloud database with automatic backups
+21. **Error Logging:** Comprehensive logging for debugging and monitoring
+22. **API Versioning:** Structured versioning for backward compatibility
