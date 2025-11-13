@@ -75,7 +75,7 @@ const getProducts = async (req, res) => {
     // Execute query with pagination
     const [products, total] = await Promise.all([
       Product.find(filter)
-        .select("-vendor -createdBy -updatedBy")
+        .select("-vendor -createdBy -updatedBy -pricing")
         .populate("categoryData")
         .sort(sortObj)
         .skip(skip)
@@ -95,12 +95,7 @@ const getProducts = async (req, res) => {
       data: {
         products: products.map((product) => ({
           ...product,
-          finalPrice:
-            product.pricing.basePrice *
-            (1 - (product.pricing.discountPercent || 0) / 100),
-          isAvailable: product.inventory?.trackInventory
-            ? product.inventory.inStock - product.inventory.reserved > 0
-            : true,
+          isAvailable: product.status === "active",
         })),
         pagination: {
           currentPage: pageNumber,
@@ -129,7 +124,7 @@ const getProductById = async (req, res) => {
     const { id } = req.params;
 
     const product = await Product.findOne({ _id: id, status: "active" })
-      .select("-vendor -createdBy -updatedBy")
+      .select("-vendor -createdBy -updatedBy -pricing")
       .lean();
 
     if (!product) {
@@ -142,12 +137,7 @@ const getProductById = async (req, res) => {
     // Add calculated fields
     const productWithCalcs = {
       ...product,
-      finalPrice:
-        product.pricing.basePrice *
-        (1 - (product.pricing.discountPercent || 0) / 100),
-      isAvailable: product.inventory?.trackInventory
-        ? product.inventory.inStock - product.inventory.reserved > 0
-        : true,
+      isAvailable: product.status === "active",
     };
 
     res.json({

@@ -301,25 +301,6 @@ const ProductSchema = new Schema(
       },
     },
 
-    // Inventory management
-    inventory: {
-      inStock: {
-        type: Number,
-        required: true,
-        min: 0,
-        default: 0,
-      },
-      reserved: {
-        type: Number,
-        min: 0,
-        default: 0,
-      },
-      trackInventory: {
-        type: Boolean,
-        default: true,
-      },
-    },
-
     // SEO and metadata
     seo: {
       metaTitle: {
@@ -373,11 +354,7 @@ ProductSchema.virtual("finalPrice").get(function () {
 
 // Virtual for availability status
 ProductSchema.virtual("isAvailable").get(function () {
-  if (!this.inventory.trackInventory) return this.status === "active";
-  return (
-    this.status === "active" &&
-    this.inventory.inStock - this.inventory.reserved > 0
-  );
+  return this.status === "active";
 });
 
 // Pre-save middleware to ensure categoryData structure

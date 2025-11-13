@@ -38,10 +38,6 @@ Authorization: Bearer <jwt-token>
   "pricing": {
     "basePrice": 25.5,
     "currency": "USD"
-  },
-  "inventory": {
-    "inStock": 500,
-    "trackInventory": true
   }
 }
 ```
@@ -162,10 +158,6 @@ const productData = {
   pricing: {
     basePrice: 85.0,
     currency: "USD",
-  },
-  inventory: {
-    inStock: 200,
-    trackInventory: true,
   },
 };
 

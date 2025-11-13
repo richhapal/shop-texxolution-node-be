@@ -127,9 +127,8 @@ const createProduct = async (req, res) => {
       // Category-specific data from Lovable form
       categoryData = {},
 
-      // Pricing and inventory
+      // Pricing and SEO
       pricing,
-      inventory,
       seo,
       vendor,
     } = req.body;
@@ -171,7 +170,6 @@ const createProduct = async (req, res) => {
       status,
       categoryData: categoryData || {},
       pricing: pricing || { basePrice: 0, currency: "USD" },
-      inventory: inventory || { inStock: 0, trackInventory: true },
       seo: seo || {},
       vendor: vendor || {},
       createdBy: req.user._id,
@@ -250,7 +248,6 @@ const createProductWithImages = async (req, res) => {
       status = "draft",
       categoryData = {},
       pricing,
-      inventory,
       seo,
       vendor,
     } = productData;
@@ -292,7 +289,6 @@ const createProductWithImages = async (req, res) => {
       status,
       categoryData: categoryData || {},
       pricing: pricing || { basePrice: 0, currency: "USD" },
-      inventory: inventory || { inStock: 0, trackInventory: true },
       seo: seo || {},
       vendor: vendor || {},
       createdBy: req.user._id,
@@ -683,7 +679,6 @@ const getProductStats = async (req, res) => {
       productsByStatus,
       productsByCategory,
       recentProducts,
-      lowStockProducts,
     ] = await Promise.all([
       Product.countDocuments(),
       Product.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
@@ -697,12 +692,6 @@ const getProductStats = async (req, res) => {
         .limit(10)
         .select("name sku status createdAt")
         .populate("createdBy", "name"),
-      Product.find({
-        "inventory.trackInventory": true,
-        $expr: { $lt: ["$inventory.inStock", 10] },
-      })
-        .select("name sku inventory.inStock")
-        .limit(10),
     ]);
 
     res.json({
@@ -713,7 +702,6 @@ const getProductStats = async (req, res) => {
         byStatus: productsByStatus,
         byCategory: productsByCategory,
         recent: recentProducts,
-        lowStock: lowStockProducts,
       },
     });
   } catch (error) {
