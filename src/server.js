@@ -46,8 +46,8 @@ app.get("/health", (req, res) => {
 
 // Routes
 // Import route modules
-const publicRoutes = require("./routes/public");
-const dashboardRoutes = require("./routes/dashboard");
+const publicRoutes = require("./routes/public/index");
+const dashboardRoutes = require("./routes/dashboard/index");
 
 // Mount routes
 app.use("/api/public", publicRoutes);
