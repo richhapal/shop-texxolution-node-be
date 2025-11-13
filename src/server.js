@@ -4,8 +4,8 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 // Routes
 // Import route modules
-const publicRoutes = require("./routes/public/index");
-const dashboardRoutes = require("./routes/dashboard/index");
+const publicRoutes = require("./routes/public");
+const dashboardRoutes = require("./routes/dashboard");
 
 // Load environment variables
 dotenv.config();
