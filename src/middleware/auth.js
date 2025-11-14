@@ -289,7 +289,7 @@ const validateRefreshToken = async (req, res, next) => {
 /**
  * Rate limiting middleware for authentication endpoints
  */
-const authRateLimit = (maxAttempts = 5, windowMs = 15 * 60 * 1000) => {
+const authRateLimit = (maxAttempts = 50, windowMs = 15 * 60 * 1000) => {
   const attempts = new Map();
 
   return (req, res, next) => {
