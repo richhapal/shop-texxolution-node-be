@@ -324,12 +324,36 @@ const authRateLimit = (maxAttempts = 5, windowMs = 15 * 60 * 1000) => {
   };
 };
 
+/**
+ * Middleware to restrict access to admin users only
+ */
+const requireAdmin = (req, res, next) => {
+  // requireAuth should be called before this middleware
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: 'Access denied. Authentication required.',
+    });
+  }
+
+  // Check if user is admin
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied. Admin privileges required.',
+    });
+  }
+
+  return next();
+};
+
 module.exports = {
   generateToken,
   generateRefreshToken,
   requireAuth,
   restrictTo,
   requirePermissions,
+  requireAdmin,
   optionalAuth,
   validateRefreshToken,
   authRateLimit,

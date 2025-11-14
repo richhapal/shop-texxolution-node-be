@@ -200,6 +200,20 @@ UserSchema.methods.checkPassword = async function (candidatePassword) {
   }
 };
 
+// Instance method to set password
+UserSchema.methods.setPassword = async function (password) {
+  if (!password) {
+    throw new Error('Password is required');
+  }
+
+  try {
+    const saltRounds = 12;
+    this.passwordHash = await bcrypt.hash(password, saltRounds);
+  } catch (error) {
+    throw new Error('Error hashing password');
+  }
+};
+
 // Instance method to increment login attempts
 UserSchema.methods.incLoginAttempts = function () {
   // Reset attempts if lock has expired

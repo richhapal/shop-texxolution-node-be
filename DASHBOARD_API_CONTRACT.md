@@ -212,9 +212,19 @@ Authorization: Bearer <jwt-token>
 
 ### User Roles:
 
-- **admin**: Full access to all endpoints
+- **admin**: Full access to all endpoints, can assign roles to other users
 - **editor**: Can create, update, and manage content
-- **viewer**: Read-only access
+- **viewer**: Read-only access (default role for new signups)
+
+### User Registration Flow:
+
+1. **New User Signup**: All new users are automatically assigned the `viewer` role
+2. **Role Assignment**: Only `admin` users can upgrade roles using the `/assign-role` endpoint
+3. **Role Restrictions**: Users cannot change their own role, and the last admin cannot be demoted
+
+### Rate Limiting:
+
+All authentication endpoints are rate-limited to **5 attempts per 15 minutes** per IP address to prevent brute-force attacks.
 
 ---
 
@@ -257,7 +267,71 @@ Content-Type: application/json
 }
 ```
 
-### 2. Get Profile
+### 2. Signup
+
+```http
+POST /api/dashboard/auth/signup
+Content-Type: application/json
+```
+
+**Request Body:**
+
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "SecurePass123!"
+}
+```
+
+**Password Requirements:**
+
+- Minimum 8 characters
+- At least one uppercase letter
+- At least one lowercase letter
+- At least one number
+- At least one special character (@$!%\*?&)
+
+**Success Response (201):**
+
+```json
+{
+  "success": true,
+  "message": "User registered successfully.",
+  "data": {
+    "user": {
+      "_id": "674b123456789abc12345678",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "role": "viewer",
+      "status": "active"
+    },
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "expiresIn": "7d"
+  }
+}
+```
+
+**Error Response (409) - Email Already Exists:**
+
+```json
+{
+  "success": false,
+  "message": "User with this email already exists."
+}
+```
+
+**Error Response (400) - Invalid Password:**
+
+```json
+{
+  "success": false,
+  "message": "Password must be at least 8 characters and contain uppercase, lowercase, number, and special character."
+}
+```
+
+### 3. Get Profile
 
 ```http
 GET /api/dashboard/auth/profile
@@ -281,6 +355,92 @@ Authorization: Bearer <jwt-token>
       "updatedAt": "2024-11-13T03:30:00.000Z"
     }
   }
+}
+```
+
+### 4. Assign Role (Admin Only)
+
+```http
+PUT /api/dashboard/auth/assign-role
+Authorization: Bearer <jwt-token>
+Content-Type: application/json
+```
+
+**Access:** Admin users only
+
+**Request Body:**
+
+```json
+{
+  "email": "user@example.com",
+  "role": "editor"
+}
+```
+
+**Available Roles:**
+
+- `admin`: Full access to all endpoints
+- `editor`: Can create, update, and manage content
+- `viewer`: Read-only access
+
+**Success Response (200):**
+
+```json
+{
+  "success": true,
+  "message": "User role updated successfully from 'viewer' to 'editor'.",
+  "data": {
+    "user": {
+      "_id": "674b123456789abc12345678",
+      "name": "John Doe",
+      "email": "user@example.com",
+      "role": "editor",
+      "status": "active"
+    },
+    "previousRole": "viewer",
+    "newRole": "editor",
+    "updatedBy": {
+      "_id": "674b987654321abc87654321",
+      "name": "Admin User",
+      "email": "admin@example.com"
+    }
+  }
+}
+```
+
+**Error Response (404) - User Not Found:**
+
+```json
+{
+  "success": false,
+  "message": "User not found with the provided email."
+}
+```
+
+**Error Response (403) - Access Denied:**
+
+```json
+{
+  "success": false,
+  "message": "Access denied. Admin privileges required."
+}
+```
+
+**Error Response (403) - Cannot Change Own Role:**
+
+```json
+{
+  "success": false,
+  "message": "You cannot change your own role."
+}
+```
+
+**Error Response (403) - Last Admin Protection:**
+
+```json
+{
+  "success": false,
+  "message": "Cannot remove the last admin user."
 }
 ```
 

@@ -3,6 +3,104 @@ const User = require('../models/User');
 const { generateToken, generateRefreshToken } = require('../middleware/auth');
 
 /**
+ * Register a new user
+ */
+const signup = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    // Validation
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Name, email, and password are required.',
+      });
+    }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email address.',
+      });
+    }
+
+    // Password strength validation
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          'Password must be at least 8 characters and contain uppercase, lowercase, number, and special character.',
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        message: 'User with this email already exists.',
+      });
+    }
+
+    // All new signups get 'viewer' role only - admin can change role later
+    const userRole = 'viewer';
+
+    // Create new user
+    const newUser = new User({
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
+      role: userRole,
+      status: 'active',
+      isEmailVerified: true, // Set to true for direct signup, or false if you want email verification
+    });
+
+    // Set password (will be hashed by pre-save middleware)
+    await newUser.setPassword(password);
+
+    // Save user
+    await newUser.save();
+
+    // Generate tokens
+    const token = generateToken(newUser._id, newUser.role);
+    const refreshToken = generateRefreshToken(newUser._id);
+
+    // Prepare user data for response
+    const userData = newUser.toJSON();
+
+    res.status(201).json({
+      success: true,
+      message: 'User registered successfully.',
+      data: {
+        user: userData,
+        token,
+        refreshToken,
+        expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+      },
+    });
+  } catch (error) {
+    console.error('Signup error:', error);
+
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: messages.join(', '),
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error during registration.',
+    });
+  }
+};
+
+/**
  * Login user and issue JWT
  */
 const login = async (req, res) => {
@@ -280,11 +378,111 @@ const logout = async (req, res) => {
   }
 };
 
+/**
+ * Assign role to user (Admin only)
+ */
+const assignRole = async (req, res) => {
+  try {
+    const { email, role } = req.body;
+
+    // Validation
+    if (!email || !role) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and role are required.',
+      });
+    }
+
+    // Validate role
+    const validRoles = ['admin', 'editor', 'viewer'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid role. Must be one of: ${validRoles.join(', ')}`,
+      });
+    }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email address.',
+      });
+    }
+
+    // Find user by email
+    const user = await User.findByEmail(email);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found with the provided email.',
+      });
+    }
+
+    // Check if user is trying to change their own role
+    if (user._id.toString() === req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'You cannot change your own role.',
+      });
+    }
+
+    // Prevent removing the last admin
+    if (user.role === 'admin' && role !== 'admin') {
+      const adminCount = await User.countDocuments({
+        role: 'admin',
+        status: 'active',
+      });
+      if (adminCount <= 1) {
+        return res.status(403).json({
+          success: false,
+          message: 'Cannot remove the last admin user.',
+        });
+      }
+    }
+
+    // Update user role
+    const previousRole = user.role;
+    user.role = role;
+    user.updatedBy = req.user._id;
+    await user.save();
+
+    // Prepare user data for response
+    const userData = user.toJSON();
+
+    res.json({
+      success: true,
+      message: `User role updated successfully from '${previousRole}' to '${role}'.`,
+      data: {
+        user: userData,
+        previousRole,
+        newRole: role,
+        updatedBy: {
+          _id: req.user._id,
+          name: req.user.name,
+          email: req.user.email,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Role assignment error:', error);
+
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error during role assignment.',
+    });
+  }
+};
+
 module.exports = {
+  signup,
   login,
   refreshToken,
   getProfile,
   updateProfile,
   changePassword,
   logout,
+  assignRole,
 };

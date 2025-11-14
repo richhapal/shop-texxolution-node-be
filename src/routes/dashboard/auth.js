@@ -8,16 +8,19 @@
 const express = require('express');
 const {
   requireAuth,
+  requireAdmin,
   validateRefreshToken,
   authRateLimit,
 } = require('../../middleware/auth');
 const {
+  signup,
   login,
   refreshToken,
   getProfile,
   updateProfile,
   changePassword,
   logout,
+  assignRole,
 } = require('../../controllers/authController');
 
 const router = express.Router();
@@ -26,6 +29,7 @@ const router = express.Router();
 router.use(authRateLimit(5, 15 * 60 * 1000)); // 5 attempts per 15 minutes
 
 // Public routes (no authentication required)
+router.post('/signup', signup);
 router.post('/login', login);
 router.post('/refresh-token', validateRefreshToken, refreshToken);
 
@@ -36,5 +40,8 @@ router.get('/profile', getProfile);
 router.put('/profile', updateProfile);
 router.post('/change-password', changePassword);
 router.post('/logout', logout);
+
+// Admin-only routes
+router.put('/assign-role', requireAdmin, assignRole);
 
 module.exports = router;
