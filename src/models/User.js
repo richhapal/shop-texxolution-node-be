@@ -169,8 +169,12 @@ UserSchema.virtual('displayName').get(function () {
 
 // Pre-save middleware to hash password
 UserSchema.pre('save', async function (next) {
-  // Only hash the password if it has been modified (or is new)
-  if (!this.isModified('passwordHash')) return next();
+  // Only hash the password if it has been modified (or is new) and not already hashed
+  if (!this.isModified('passwordHash') || this._passwordAlreadyHashed) {
+    // Reset the flag after use
+    this._passwordAlreadyHashed = false;
+    return next();
+  }
 
   try {
     // Hash password with cost of 12
@@ -209,6 +213,8 @@ UserSchema.methods.setPassword = async function (password) {
   try {
     const saltRounds = 12;
     this.passwordHash = await bcrypt.hash(password, saltRounds);
+    // Mark that password is already hashed to prevent double hashing in pre-save
+    this._passwordAlreadyHashed = true;
   } catch (error) {
     throw new Error('Error hashing password');
   }
