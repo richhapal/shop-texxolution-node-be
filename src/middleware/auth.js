@@ -1,5 +1,5 @@
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
 /**
  * Generate JWT token for user
@@ -15,9 +15,9 @@ const generateToken = (userId, role) => {
   };
 
   return jwt.sign(payload, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || "7d",
-    issuer: "shop-texxolution",
-    audience: "shop-texxolution-users",
+    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+    issuer: 'shop-texxolution',
+    audience: 'shop-texxolution-users',
   });
 };
 
@@ -26,10 +26,10 @@ const generateToken = (userId, role) => {
  * @param {string} userId - User ID
  * @returns {string} Refresh token
  */
-const generateRefreshToken = (userId) => {
+const generateRefreshToken = userId => {
   const payload = {
     userId,
-    type: "refresh",
+    type: 'refresh',
     iat: Date.now(),
   };
 
@@ -37,8 +37,8 @@ const generateRefreshToken = (userId) => {
     payload,
     process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
     {
-      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "30d",
-    }
+      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
+    },
   );
 };
 
@@ -54,15 +54,15 @@ const requireAuth = async (req, res, next) => {
     if (!authHeader) {
       return res.status(401).json({
         success: false,
-        message: "Access denied. No token provided.",
+        message: 'Access denied. No token provided.',
       });
     }
 
     // Check if token starts with Bearer
-    if (!authHeader.startsWith("Bearer ")) {
+    if (!authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         success: false,
-        message: "Access denied. Invalid token format.",
+        message: 'Access denied. Invalid token format.',
       });
     }
 
@@ -71,7 +71,7 @@ const requireAuth = async (req, res, next) => {
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "Access denied. No token provided.",
+        message: 'Access denied. No token provided.',
       });
     }
 
@@ -80,20 +80,20 @@ const requireAuth = async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       // Get user from database
-      const user = await User.findById(decoded.userId).select("-passwordHash");
+      const user = await User.findById(decoded.userId).select('-passwordHash');
 
       if (!user) {
         return res.status(401).json({
           success: false,
-          message: "Access denied. User not found.",
+          message: 'Access denied. User not found.',
         });
       }
 
       // Check if user account is active
-      if (user.status !== "active") {
+      if (user.status !== 'active') {
         return res.status(401).json({
           success: false,
-          message: "Access denied. Account is suspended.",
+          message: 'Access denied. Account is suspended.',
         });
       }
 
@@ -101,7 +101,7 @@ const requireAuth = async (req, res, next) => {
       if (user.isLocked) {
         return res.status(401).json({
           success: false,
-          message: "Access denied. Account is temporarily locked.",
+          message: 'Access denied. Account is temporarily locked.',
         });
       }
 
@@ -109,29 +109,29 @@ const requireAuth = async (req, res, next) => {
       req.user = user;
       req.token = token;
 
-      next();
+      return next();
     } catch (jwtError) {
-      if (jwtError.name === "TokenExpiredError") {
+      if (jwtError.name === 'TokenExpiredError') {
         return res.status(401).json({
           success: false,
-          message: "Access denied. Token has expired.",
+          message: 'Access denied. Token has expired.',
         });
       }
 
-      if (jwtError.name === "JsonWebTokenError") {
+      if (jwtError.name === 'JsonWebTokenError') {
         return res.status(401).json({
           success: false,
-          message: "Access denied. Invalid token.",
+          message: 'Access denied. Invalid token.',
         });
       }
 
       throw jwtError;
     }
   } catch (error) {
-    console.error("Authentication error:", error);
-    res.status(500).json({
+    console.error('Authentication error:', error);
+    return res.status(500).json({
       success: false,
-      message: "Internal server error during authentication.",
+      message: 'Internal server error during authentication.',
     });
   }
 };
@@ -147,7 +147,7 @@ const restrictTo = (...roles) => {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        message: "Access denied. Authentication required.",
+        message: 'Access denied. Authentication required.',
       });
     }
 
@@ -156,12 +156,12 @@ const restrictTo = (...roles) => {
       return res.status(403).json({
         success: false,
         message: `Access denied. Required role: ${roles.join(
-          " or "
+          ' or ',
         )}. Your role: ${req.user.role}`,
       });
     }
 
-    next();
+    return next();
   };
 };
 
@@ -175,25 +175,25 @@ const requirePermissions = (...permissions) => {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        message: "Access denied. Authentication required.",
+        message: 'Access denied. Authentication required.',
       });
     }
 
     // Check if user has all required permissions
-    const hasAllPermissions = permissions.every((permission) =>
-      req.user.hasPermission(permission)
+    const hasAllPermissions = permissions.every(permission =>
+      req.user.hasPermission(permission),
     );
 
     if (!hasAllPermissions) {
       return res.status(403).json({
         success: false,
         message: `Access denied. Required permissions: ${permissions.join(
-          ", "
+          ', ',
         )}`,
       });
     }
 
-    next();
+    return next();
   };
 };
 
@@ -205,7 +205,7 @@ const optionalAuth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return next(); // No token provided, continue without user
     }
 
@@ -217,9 +217,9 @@ const optionalAuth = async (req, res, next) => {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await User.findById(decoded.userId).select("-passwordHash");
+      const user = await User.findById(decoded.userId).select('-passwordHash');
 
-      if (user && user.status === "active" && !user.isLocked) {
+      if (user && user.status === 'active' && !user.isLocked) {
         req.user = user;
         req.token = token;
       }
@@ -227,10 +227,10 @@ const optionalAuth = async (req, res, next) => {
       // Invalid token, but don't throw error - just continue without user
     }
 
-    next();
+    return next();
   } catch (error) {
-    console.error("Optional auth error:", error);
-    next(); // Continue without authentication on error
+    console.error('Optional auth error:', error);
+    return next(); // Continue without authentication on error
   }
 };
 
@@ -244,44 +244,44 @@ const validateRefreshToken = async (req, res, next) => {
     if (!refreshToken) {
       return res.status(401).json({
         success: false,
-        message: "Refresh token is required.",
+        message: 'Refresh token is required.',
       });
     }
 
     const decoded = jwt.verify(
       refreshToken,
-      process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET
+      process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
     );
 
-    if (decoded.type !== "refresh") {
+    if (decoded.type !== 'refresh') {
       return res.status(401).json({
         success: false,
-        message: "Invalid refresh token.",
+        message: 'Invalid refresh token.',
       });
     }
 
-    const user = await User.findById(decoded.userId).select("-passwordHash");
+    const user = await User.findById(decoded.userId).select('-passwordHash');
 
-    if (!user || user.status !== "active") {
+    if (!user || user.status !== 'active') {
       return res.status(401).json({
         success: false,
-        message: "Invalid refresh token or user not found.",
+        message: 'Invalid refresh token or user not found.',
       });
     }
 
     req.user = user;
-    next();
+    return next();
   } catch (error) {
-    if (error.name === "TokenExpiredError") {
+    if (error.name === 'TokenExpiredError') {
       return res.status(401).json({
         success: false,
-        message: "Refresh token has expired.",
+        message: 'Refresh token has expired.',
       });
     }
 
     return res.status(401).json({
       success: false,
-      message: "Invalid refresh token.",
+      message: 'Invalid refresh token.',
     });
   }
 };
@@ -313,14 +313,14 @@ const authRateLimit = (maxAttempts = 5, windowMs = 15 * 60 * 1000) => {
     if (userAttempts.count >= maxAttempts) {
       return res.status(429).json({
         success: false,
-        message: "Too many authentication attempts. Please try again later.",
+        message: 'Too many authentication attempts. Please try again later.',
       });
     }
 
     userAttempts.count += 1;
     attempts.set(key, userAttempts);
 
-    next();
+    return next();
   };
 };
 

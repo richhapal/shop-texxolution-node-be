@@ -1,5 +1,6 @@
-const Enquiry = require("../models/Enquiry");
-const User = require("../models/User");
+/* eslint-disable consistent-return */
+const Enquiry = require('../models/Enquiry');
+const User = require('../models/User');
 
 /**
  * Get all enquiries for dashboard with filtering and pagination
@@ -9,7 +10,7 @@ const getDashboardEnquiries = async (req, res) => {
     const {
       page = 1,
       limit = 20,
-      sort = "-createdAt",
+      sort = '-createdAt',
       status,
       assignedTo,
       priority,
@@ -37,19 +38,19 @@ const getDashboardEnquiries = async (req, res) => {
     // Search filter
     if (search) {
       filter.$or = [
-        { customerName: { $regex: search, $options: "i" } },
-        { company: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
-        { enquiryNo: { $regex: search, $options: "i" } },
+        { customerName: { $regex: search, $options: 'i' } },
+        { company: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { enquiryNo: { $regex: search, $options: 'i' } },
       ];
     }
 
     // Build sort object
-    let sortObj = {};
+    const sortObj = {};
     if (sort) {
-      const sortFields = sort.split(",");
-      sortFields.forEach((field) => {
-        if (field.startsWith("-")) {
+      const sortFields = sort.split(',');
+      sortFields.forEach(field => {
+        if (field.startsWith('-')) {
           sortObj[field.slice(1)] = -1;
         } else {
           sortObj[field] = 1;
@@ -64,8 +65,8 @@ const getDashboardEnquiries = async (req, res) => {
     // Execute query
     const [enquiries, total] = await Promise.all([
       Enquiry.find(filter)
-        .populate("assignedTo", "name email")
-        .populate("products.productId", "name sku category")
+        .populate('assignedTo', 'name email')
+        .populate('products.productId', 'name sku category')
         .sort(sortObj)
         .skip(skip)
         .limit(limitNumber)
@@ -77,7 +78,7 @@ const getDashboardEnquiries = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Enquiries retrieved successfully.",
+      message: 'Enquiries retrieved successfully.',
       data: {
         enquiries,
         pagination: {
@@ -91,10 +92,10 @@ const getDashboardEnquiries = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Get dashboard enquiries error:", error);
+    console.error('Get dashboard enquiries error:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error while retrieving enquiries.",
+      message: 'Internal server error while retrieving enquiries.',
     });
   }
 };
@@ -107,42 +108,42 @@ const getEnquiryById = async (req, res) => {
     const { id } = req.params;
 
     const enquiry = await Enquiry.findById(id)
-      .populate("assignedTo", "name email department")
+      .populate('assignedTo', 'name email department')
       .populate(
-        "products.productId",
-        "name sku category images.main pricing.basePrice"
+        'products.productId',
+        'name sku category images.main pricing.basePrice',
       )
-      .populate("internalNotes.addedBy", "name email")
-      .populate("communications.handledBy", "name email")
+      .populate('internalNotes.addedBy', 'name email')
+      .populate('communications.handledBy', 'name email')
       .lean();
 
     if (!enquiry) {
       return res.status(404).json({
         success: false,
-        message: "Enquiry not found.",
+        message: 'Enquiry not found.',
       });
     }
 
     res.json({
       success: true,
-      message: "Enquiry retrieved successfully.",
+      message: 'Enquiry retrieved successfully.',
       data: {
         enquiry,
       },
     });
   } catch (error) {
-    console.error("Get enquiry by ID error:", error);
+    console.error('Get enquiry by ID error:', error);
 
-    if (error.name === "CastError") {
+    if (error.name === 'CastError') {
       return res.status(400).json({
         success: false,
-        message: "Invalid enquiry ID format.",
+        message: 'Invalid enquiry ID format.',
       });
     }
 
     res.status(500).json({
       success: false,
-      message: "Internal server error while retrieving enquiry.",
+      message: 'Internal server error while retrieving enquiry.',
     });
   }
 };
@@ -161,18 +162,18 @@ const updateEnquiry = async (req, res) => {
     if (!enquiry) {
       return res.status(404).json({
         success: false,
-        message: "Enquiry not found.",
+        message: 'Enquiry not found.',
       });
     }
 
     // Update status if provided
     if (status) {
-      const validStatuses = ["new", "in_review", "approved", "rejected"];
+      const validStatuses = ['new', 'in_review', 'approved', 'rejected'];
       if (!validStatuses.includes(status)) {
         return res.status(400).json({
           success: false,
           message:
-            "Invalid status. Must be one of: new, in_review, approved, rejected",
+            'Invalid status. Must be one of: new, in_review, approved, rejected',
         });
       }
       enquiry.status = status;
@@ -185,25 +186,25 @@ const updateEnquiry = async (req, res) => {
       if (!user) {
         return res.status(400).json({
           success: false,
-          message: "Assigned user not found.",
+          message: 'Assigned user not found.',
         });
       }
       enquiry.assignedTo = assignedTo;
 
       // Auto-update status to in_review if it was new
-      if (enquiry.status === "new") {
-        enquiry.status = "in_review";
+      if (enquiry.status === 'new') {
+        enquiry.status = 'in_review';
       }
     }
 
     // Update priority if provided
     if (priority) {
-      const validPriorities = ["low", "medium", "high", "urgent"];
+      const validPriorities = ['low', 'medium', 'high', 'urgent'];
       if (!validPriorities.includes(priority)) {
         return res.status(400).json({
           success: false,
           message:
-            "Invalid priority. Must be one of: low, medium, high, urgent",
+            'Invalid priority. Must be one of: low, medium, high, urgent',
         });
       }
       enquiry.priority = priority;
@@ -225,28 +226,28 @@ const updateEnquiry = async (req, res) => {
     await enquiry.save();
 
     // Populate for response
-    await enquiry.populate("assignedTo", "name email");
+    await enquiry.populate('assignedTo', 'name email');
 
     res.json({
       success: true,
-      message: "Enquiry updated successfully.",
+      message: 'Enquiry updated successfully.',
       data: {
         enquiry,
       },
     });
   } catch (error) {
-    console.error("Update enquiry error:", error);
+    console.error('Update enquiry error:', error);
 
-    if (error.name === "CastError") {
+    if (error.name === 'CastError') {
       return res.status(400).json({
         success: false,
-        message: "Invalid enquiry ID format.",
+        message: 'Invalid enquiry ID format.',
       });
     }
 
     res.status(500).json({
       success: false,
-      message: "Internal server error while updating enquiry.",
+      message: 'Internal server error while updating enquiry.',
     });
   }
 };
@@ -262,24 +263,24 @@ const addCommunication = async (req, res) => {
     if (!type || !subject || !content || !direction) {
       return res.status(400).json({
         success: false,
-        message: "Type, subject, content, and direction are required.",
+        message: 'Type, subject, content, and direction are required.',
       });
     }
 
-    const validTypes = ["email", "phone", "meeting", "other"];
-    const validDirections = ["inbound", "outbound"];
+    const validTypes = ['email', 'phone', 'meeting', 'other'];
+    const validDirections = ['inbound', 'outbound'];
 
     if (!validTypes.includes(type)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid type. Must be one of: email, phone, meeting, other",
+        message: 'Invalid type. Must be one of: email, phone, meeting, other',
       });
     }
 
     if (!validDirections.includes(direction)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid direction. Must be one of: inbound, outbound",
+        message: 'Invalid direction. Must be one of: inbound, outbound',
       });
     }
 
@@ -288,7 +289,7 @@ const addCommunication = async (req, res) => {
     if (!enquiry) {
       return res.status(404).json({
         success: false,
-        message: "Enquiry not found.",
+        message: 'Enquiry not found.',
       });
     }
 
@@ -304,21 +305,21 @@ const addCommunication = async (req, res) => {
     await enquiry.save();
 
     // Populate the newly added communication
-    await enquiry.populate("communications.handledBy", "name email");
+    await enquiry.populate('communications.handledBy', 'name email');
 
     res.json({
       success: true,
-      message: "Communication added successfully.",
+      message: 'Communication added successfully.',
       data: {
         communication:
           enquiry.communications[enquiry.communications.length - 1],
       },
     });
   } catch (error) {
-    console.error("Add communication error:", error);
+    console.error('Add communication error:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error while adding communication.",
+      message: 'Internal server error while adding communication.',
     });
   }
 };
@@ -333,14 +334,14 @@ const bulkUpdateEnquiries = async (req, res) => {
     if (!enquiryIds || !Array.isArray(enquiryIds) || enquiryIds.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Enquiry IDs array is required.",
+        message: 'Enquiry IDs array is required.',
       });
     }
 
     if (!updateData || Object.keys(updateData).length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Update data is required.",
+        message: 'Update data is required.',
       });
     }
 
@@ -350,7 +351,7 @@ const bulkUpdateEnquiries = async (req, res) => {
       if (!user) {
         return res.status(400).json({
           success: false,
-          message: "Assigned user not found.",
+          message: 'Assigned user not found.',
         });
       }
     }
@@ -358,7 +359,7 @@ const bulkUpdateEnquiries = async (req, res) => {
     const result = await Enquiry.updateMany(
       { _id: { $in: enquiryIds } },
       updateData,
-      { runValidators: true }
+      { runValidators: true },
     );
 
     res.json({
@@ -370,10 +371,10 @@ const bulkUpdateEnquiries = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Bulk update enquiries error:", error);
+    console.error('Bulk update enquiries error:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error during bulk update.",
+      message: 'Internal server error during bulk update.',
     });
   }
 };
@@ -393,38 +394,38 @@ const getEnquiryStats = async (req, res) => {
       topAssignees,
     ] = await Promise.all([
       Enquiry.countDocuments(),
-      Enquiry.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
-      Enquiry.aggregate([{ $group: { _id: "$priority", count: { $sum: 1 } } }]),
-      Enquiry.aggregate([{ $group: { _id: "$source", count: { $sum: 1 } } }]),
+      Enquiry.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
+      Enquiry.aggregate([{ $group: { _id: '$priority', count: { $sum: 1 } } }]),
+      Enquiry.aggregate([{ $group: { _id: '$source', count: { $sum: 1 } } }]),
       Enquiry.countDocuments({
         followUpDate: { $lt: new Date() },
-        status: "in_review",
+        status: 'in_review',
       }),
       Enquiry.find()
         .sort({ createdAt: -1 })
         .limit(10)
-        .select("enquiryNo customerName company status priority createdAt")
-        .populate("assignedTo", "name"),
+        .select('enquiryNo customerName company status priority createdAt')
+        .populate('assignedTo', 'name'),
       Enquiry.aggregate([
         { $match: { assignedTo: { $exists: true } } },
-        { $group: { _id: "$assignedTo", count: { $sum: 1 } } },
+        { $group: { _id: '$assignedTo', count: { $sum: 1 } } },
         { $sort: { count: -1 } },
         { $limit: 5 },
         {
           $lookup: {
-            from: "users",
-            localField: "_id",
-            foreignField: "_id",
-            as: "user",
+            from: 'users',
+            localField: '_id',
+            foreignField: '_id',
+            as: 'user',
           },
         },
-        { $unwind: "$user" },
+        { $unwind: '$user' },
         {
           $project: {
             _id: 0,
-            userId: "$_id",
-            name: "$user.name",
-            email: "$user.email",
+            userId: '$_id',
+            name: '$user.name',
+            email: '$user.email',
             count: 1,
           },
         },
@@ -433,7 +434,7 @@ const getEnquiryStats = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Enquiry statistics retrieved successfully.",
+      message: 'Enquiry statistics retrieved successfully.',
       data: {
         total: totalEnquiries,
         byStatus: enquiriesByStatus,
@@ -445,10 +446,10 @@ const getEnquiryStats = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Get enquiry stats error:", error);
+    console.error('Get enquiry stats error:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error while retrieving statistics.",
+      message: 'Internal server error while retrieving statistics.',
     });
   }
 };

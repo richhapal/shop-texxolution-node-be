@@ -3,14 +3,14 @@ const {
   PutObjectCommand,
   DeleteObjectCommand,
   GetObjectCommand,
-} = require("@aws-sdk/client-s3");
-const fs = require("fs");
-const path = require("path");
-const crypto = require("crypto");
+} = require('@aws-sdk/client-s3');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
 
 // Configure Cloudflare R2 S3 Client
 const r2Client = new S3Client({
-  region: "auto", // Cloudflare R2 uses 'auto' as region
+  region: 'auto', // Cloudflare R2 uses 'auto' as region
   endpoint: process.env.CLOUDFLARE_R2_ENDPOINT,
   credentials: {
     accessKeyId: process.env.CLOUDFLARE_R2_ACCESS_KEY_ID,
@@ -32,7 +32,7 @@ const uploadToR2 = async (fileData, folderPath, metadata = {}) => {
   try {
     // Generate unique filename
     const fileExtension = path.extname(fileData.originalname);
-    const uniqueId = crypto.randomBytes(16).toString("hex");
+    const uniqueId = crypto.randomBytes(16).toString('hex');
     const fileName = `${folderPath}/${uniqueId}${fileExtension}`;
 
     // Prepare upload command
@@ -42,8 +42,8 @@ const uploadToR2 = async (fileData, folderPath, metadata = {}) => {
       Body: fileData.buffer,
       ContentType: fileData.mimetype,
       Metadata: {
-        "original-name": fileData.originalname,
-        "upload-date": new Date().toISOString(),
+        'original-name': fileData.originalname,
+        'upload-date': new Date().toISOString(),
         ...metadata,
       },
     });
@@ -61,7 +61,7 @@ const uploadToR2 = async (fileData, folderPath, metadata = {}) => {
       etag: result.ETag,
     };
   } catch (error) {
-    console.error("R2 upload error:", error);
+    console.error('R2 upload error:', error);
     throw new Error(`Failed to upload to R2: ${error.message}`);
   }
 };
@@ -78,7 +78,7 @@ const uploadFileFromPath = async (
   filePath,
   fileName,
   contentType,
-  metadata = {}
+  metadata = {},
 ) => {
   try {
     // Read file from local path
@@ -91,7 +91,7 @@ const uploadFileFromPath = async (
       Body: fileBuffer,
       ContentType: contentType,
       Metadata: {
-        "upload-date": new Date().toISOString(),
+        'upload-date': new Date().toISOString(),
         ...metadata,
       },
     });
@@ -106,7 +106,7 @@ const uploadFileFromPath = async (
     try {
       fs.unlinkSync(filePath);
     } catch (cleanupError) {
-      console.warn("Failed to clean up temp file:", cleanupError);
+      console.warn('Failed to clean up temp file:', cleanupError);
     }
 
     return {
@@ -121,11 +121,11 @@ const uploadFileFromPath = async (
       try {
         fs.unlinkSync(filePath);
       } catch (unlinkError) {
-        console.error("Error deleting temporary file:", unlinkError);
+        console.error('Error deleting temporary file:', unlinkError);
       }
     }
 
-    console.error("R2 upload from path error:", error);
+    console.error('R2 upload from path error:', error);
     throw new Error(`Failed to upload to R2: ${error.message}`);
   }
 };
@@ -148,7 +148,7 @@ const uploadMultipleImages = async (files, folderPath, metadata = {}) => {
         file.path,
         fileName,
         file.mimetype,
-        metadata
+        metadata,
       );
 
       return result;
@@ -157,7 +157,7 @@ const uploadMultipleImages = async (files, folderPath, metadata = {}) => {
     const results = await Promise.all(uploadPromises);
     return results;
   } catch (error) {
-    console.error("Upload multiple images error:", error);
+    console.error('Upload multiple images error:', error);
     throw new Error(`Failed to upload images: ${error.message}`);
   }
 };
@@ -167,7 +167,7 @@ const uploadMultipleImages = async (files, folderPath, metadata = {}) => {
  * @param {string} fileName - The file name/path in R2
  * @returns {Promise<boolean>} Success status
  */
-const deleteFromR2 = async (fileName) => {
+const deleteFromR2 = async fileName => {
   try {
     const deleteParams = {
       Bucket: process.env.CLOUDFLARE_R2_BUCKET_NAME,
@@ -180,7 +180,7 @@ const deleteFromR2 = async (fileName) => {
     console.log(`File deleted successfully: ${fileName}`);
     return true;
   } catch (error) {
-    console.error("Delete from R2 error:", error);
+    console.error('Delete from R2 error:', error);
     throw new Error(`Failed to delete file: ${error.message}`);
   }
 };
@@ -193,7 +193,7 @@ const deleteFromR2 = async (fileName) => {
  */
 const generateSignedUrl = async (fileName, expiresIn = 3600) => {
   try {
-    const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+    const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
     const command = new GetObjectCommand({
       Bucket: process.env.CLOUDFLARE_R2_BUCKET_NAME,
@@ -203,7 +203,7 @@ const generateSignedUrl = async (fileName, expiresIn = 3600) => {
     const signedUrl = await getSignedUrl(r2Client, command, { expiresIn });
     return signedUrl;
   } catch (error) {
-    console.error("Signed URL generation error:", error);
+    console.error('Signed URL generation error:', error);
     throw new Error(`Failed to generate signed URL: ${error.message}`);
   }
 };
@@ -220,7 +220,7 @@ const validateFile = (file, allowedTypes = [], maxSize = 10 * 1024 * 1024) => {
 
   // Check file type
   if (allowedTypes.length > 0 && !allowedTypes.includes(file.mimetype)) {
-    errors.push(`Invalid file type. Allowed types: ${allowedTypes.join(", ")}`);
+    errors.push(`Invalid file type. Allowed types: ${allowedTypes.join(', ')}`);
   }
 
   // Check file size

@@ -1,23 +1,30 @@
-const express = require("express");
+/**
+ * 🏢 Dashboard Routes Index
+ * Admin panel router aggregator - mounts all management endpoints.
+ * Includes authentication, product management, enquiry handling, and file uploads.
+ * Base path: /api/dashboard (JWT authentication required for all routes)
+ */
+
+const express = require('express');
 const router = express.Router();
 
 // Import individual dashboard route modules
-const authRoutes = require("./auth");
-const productRoutes = require("./products");
-const enquiryRoutes = require("./enquiries");
-const quotationRoutes = require("./quotations");
-const uploadRoutes = require("./uploads");
+const authRoutes = require('./auth');
+const productRoutes = require('./products');
+const enquiryRoutes = require('./enquiries');
+const quotationRoutes = require('./quotations');
+const uploadRoutes = require('./uploads');
 
 // Import authentication middleware
-const { requireAuth } = require("../../middleware/auth");
+const { requireAuth } = require('../../middleware/auth');
 
 // Auth routes (no authentication required)
-router.use("/auth", authRoutes);
+router.use('/auth', authRoutes);
 
 // Protected routes (authentication required)
-router.use("/products", requireAuth, productRoutes);
-router.use("/enquiries", requireAuth, enquiryRoutes);
-router.use("/quotations", requireAuth, quotationRoutes);
-router.use("/uploads", requireAuth, uploadRoutes);
+router.use('/products', requireAuth, productRoutes);
+router.use('/enquiries', requireAuth, enquiryRoutes);
+router.use('/quotations', requireAuth, quotationRoutes);
+router.use('/uploads', requireAuth, uploadRoutes);
 
 module.exports = router;

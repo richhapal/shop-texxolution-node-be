@@ -9,7 +9,11 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "seed:admin": "node src/utils/seedUsers.js admin",
     "seed:sample": "node src/utils/seedUsers.js sample",
-    "seed:all": "node src/utils/seedUsers.js all"
+    "seed:all": "node src/utils/seedUsers.js all",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "format": "prettier --write src/",
+    "format:check": "prettier --check src/"
   },
   "keywords": [
     "ecommerce",
@@ -36,6 +40,8 @@
     "multer": "^2.0.2"
   },
   "devDependencies": {
-    "nodemon": "^3.1.11"
+    "nodemon": "^3.1.11",
+    "eslint": "^8.57.0",
+    "prettier": "^3.1.0"
   }
 }

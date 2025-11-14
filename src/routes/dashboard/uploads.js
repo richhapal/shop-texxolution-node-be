@@ -1,17 +1,28 @@
-const express = require("express");
-const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
+/**
+ * 🧩 Shop Texxolution Backend Standards
+ * - API Contract v3.0 (https://shop-texxolution-node-be.onrender.com)
+ * - Consistent response format: { success, message, data }
+ * - JWT-secured dashboard routes
+ * - Flexible categoryData for product fields
+ * - Redis caching for public endpoints
+ * - Cloudflare R2 for file storage
+ * - Centralized errorHandler
+ */
+
+const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const {
   uploadProductImages,
   deleteProductImage,
   uploadProductFiles,
-} = require("../../controllers/fileUploadController");
+} = require('../../controllers/fileUploadController');
 
 const router = express.Router();
 
 // Create upload directory if it doesn't exist
-const uploadDir = path.join(__dirname, "../../../uploads");
+const uploadDir = path.join(__dirname, '../../../uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -20,10 +31,10 @@ if (!fs.existsSync(uploadDir)) {
 const storage = multer.diskStorage({
   destination: uploadDir,
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     cb(
       null,
-      `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`
+      `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`,
     );
   },
 });
@@ -37,12 +48,12 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     // Basic file type check - specific validation happens in controller
     const allowedMimes = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "application/pdf",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     ];
 
     if (allowedMimes.includes(file.mimetype)) {
@@ -59,9 +70,9 @@ const upload = multer({
  * @access Private (Admin/Editor)
  */
 router.post(
-  "/products/:productId/images",
-  upload.array("images", 10),
-  uploadProductImages
+  '/products/:productId/images',
+  upload.array('images', 10),
+  uploadProductImages,
 );
 
 /**
@@ -69,7 +80,7 @@ router.post(
  * @desc Delete a specific product image
  * @access Private (Admin/Editor)
  */
-router.delete("/products/:productId/images/:imageUrl", deleteProductImage);
+router.delete('/products/:productId/images/:imageUrl', deleteProductImage);
 
 /**
  * @route POST /uploads/products/:productId/files
@@ -77,26 +88,26 @@ router.delete("/products/:productId/images/:imageUrl", deleteProductImage);
  * @access Private (Admin/Editor)
  */
 router.post(
-  "/products/:productId/files",
-  upload.single("file"),
-  uploadProductFiles
+  '/products/:productId/files',
+  upload.single('file'),
+  uploadProductFiles,
 );
 
 // Error handling middleware for multer
 router.use((error, req, res, next) => {
   if (error instanceof multer.MulterError) {
-    let message = "File upload error";
+    let message = 'File upload error';
 
     switch (error.code) {
-      case "LIMIT_FILE_SIZE":
-        message = "File too large. Maximum size is 10MB.";
-        break;
-      case "LIMIT_FILE_COUNT":
-        message = "Too many files. Maximum 10 files allowed.";
-        break;
-      case "LIMIT_UNEXPECTED_FILE":
-        message = "Unexpected file field.";
-        break;
+    case 'LIMIT_FILE_SIZE':
+      message = 'File too large. Maximum size is 10MB.';
+      break;
+    case 'LIMIT_FILE_COUNT':
+      message = 'Too many files. Maximum 10 files allowed.';
+      break;
+    case 'LIMIT_UNEXPECTED_FILE':
+      message = 'Unexpected file field.';
+      break;
     }
 
     return res.status(400).json({
@@ -113,7 +124,8 @@ router.use((error, req, res, next) => {
     });
   }
 
-  next(error);
+  // Always return or call next to satisfy the requirement
+  return next(error);
 });
 
 module.exports = router;

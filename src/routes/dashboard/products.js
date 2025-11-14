@@ -1,8 +1,16 @@
-const express = require("express");
-const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
-const { restrictTo } = require("../../middleware/auth");
+/**
+ * 📦 Product Management Dashboard Routes
+ * Complete CRUD operations for textile product catalog management.
+ * Features: uniqueId generation, categoryData flexibility, image uploads, cache invalidation.
+ * Routes: GET /products, POST /products, GET /stats, PUT /:id, DELETE /:id
+ * Access: Admin (full), Editor (create/update), Viewer (read-only)
+ */
+
+const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const { restrictTo } = require('../../middleware/auth');
 const {
   getDashboardProducts,
   createProduct,
@@ -12,12 +20,12 @@ const {
   deleteProduct,
   bulkUpdateProducts,
   getProductStats,
-} = require("../../controllers/dashboardProductController");
+} = require('../../controllers/dashboardProductController');
 
 const router = express.Router();
 
 // Create upload directory if it doesn't exist
-const uploadDir = path.join(__dirname, "../../../uploads");
+const uploadDir = path.join(__dirname, '../../../uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -26,10 +34,10 @@ if (!fs.existsSync(uploadDir)) {
 const storage = multer.diskStorage({
   destination: uploadDir,
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     cb(
       null,
-      `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`
+      `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`,
     );
   },
 });
@@ -42,10 +50,10 @@ const upload = multer({
   },
   fileFilter: (req, file, cb) => {
     const allowedMimes = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "application/pdf",
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'application/pdf',
     ];
 
     if (allowedMimes.includes(file.mimetype)) {
@@ -64,7 +72,7 @@ const upload = multer({
  * Access: All authenticated users
  * Query params: page, limit, sort, category, status, search, createdBy, minPrice, maxPrice
  */
-router.get("/", getDashboardProducts);
+router.get('/', getDashboardProducts);
 
 /**
  * POST /api/dashboard/products
@@ -72,7 +80,7 @@ router.get("/", getDashboardProducts);
  * Access: Admin, Editor
  * Body: Complete product object with categoryData JSON
  */
-router.post("/", restrictTo("admin", "editor"), createProduct);
+router.post('/', restrictTo('admin', 'editor'), createProduct);
 
 /**
  * POST /api/dashboard/products/with-images
@@ -81,14 +89,14 @@ router.post("/", restrictTo("admin", "editor"), createProduct);
  * Body: multipart/form-data with product data and image files
  */
 router.post(
-  "/with-images",
-  restrictTo("admin", "editor"),
+  '/with-images',
+  restrictTo('admin', 'editor'),
   upload.fields([
-    { name: "mainImage", maxCount: 1 },
-    { name: "galleryImages", maxCount: 9 },
-    { name: "specSheet", maxCount: 1 },
+    { name: 'mainImage', maxCount: 1 },
+    { name: 'galleryImages', maxCount: 9 },
+    { name: 'specSheet', maxCount: 1 },
   ]),
-  createProductWithImages
+  createProductWithImages,
 );
 
 /**
@@ -96,14 +104,14 @@ router.post(
  * Get product statistics for dashboard
  * Access: All authenticated users
  */
-router.get("/stats", getProductStats);
+router.get('/stats', getProductStats);
 
 /**
  * GET /api/dashboard/products/:id
  * Get single product details for editing
  * Access: All authenticated users
  */
-router.get("/:id", getProductById);
+router.get('/:id', getProductById);
 
 /**
  * PUT /api/dashboard/products/:id
@@ -111,14 +119,14 @@ router.get("/:id", getProductById);
  * Access: Admin, Editor
  * Body: Updated product fields including categoryData
  */
-router.put("/:id", restrictTo("admin", "editor"), updateProduct);
+router.put('/:id', restrictTo('admin', 'editor'), updateProduct);
 
 /**
  * DELETE /api/dashboard/products/:id
  * Delete product (soft delete - change status to discontinued)
  * Access: Admin only
  */
-router.delete("/:id", restrictTo("admin"), deleteProduct);
+router.delete('/:id', restrictTo('admin'), deleteProduct);
 
 // ==================== BULK OPERATIONS ====================
 
@@ -128,6 +136,6 @@ router.delete("/:id", restrictTo("admin"), deleteProduct);
  * Access: Admin, Editor
  * Body: { productIds: string[], updateData: object }
  */
-router.patch("/bulk", restrictTo("admin", "editor"), bulkUpdateProducts);
+router.patch('/bulk', restrictTo('admin', 'editor'), bulkUpdateProducts);
 
 module.exports = router;

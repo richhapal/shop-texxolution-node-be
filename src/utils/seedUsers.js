@@ -1,6 +1,6 @@
-const mongoose = require("mongoose");
-const User = require("../models/User");
-const dotenv = require("dotenv");
+const mongoose = require('mongoose');
+const User = require('../models/User');
+const dotenv = require('dotenv');
 
 // Load environment variables
 dotenv.config();
@@ -15,40 +15,40 @@ const createAdminUser = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log("Connected to MongoDB");
+    console.log('Connected to MongoDB');
 
     // Check if any admin user exists
-    const existingAdmin = await User.findOne({ role: "admin" });
+    const existingAdmin = await User.findOne({ role: 'admin' });
 
     if (existingAdmin) {
-      console.log("Admin user already exists:", existingAdmin.email);
+      console.log('Admin user already exists:', existingAdmin.email);
       return;
     }
 
     // Create admin user
     const adminData = {
-      name: "Admin User",
-      email: "admin@shoptexxolution.com",
-      passwordHash: "admin123456", // This will be hashed by the pre-save middleware
-      role: "admin",
-      status: "active",
+      name: 'Admin User',
+      email: 'admin@shoptexxolution.com',
+      passwordHash: 'admin123456', // This will be hashed by the pre-save middleware
+      role: 'admin',
+      status: 'active',
       isEmailVerified: true,
-      department: "Administration",
+      department: 'Administration',
     };
 
     const adminUser = await User.create(adminData);
-    console.log("Admin user created successfully:", adminUser.email);
-    console.log("Login credentials:");
-    console.log("Email: admin@shoptexxolution.com");
-    console.log("Password: admin123456");
-    console.log("");
-    console.log("🔒 Please change the admin password after first login!");
+    console.log('Admin user created successfully:', adminUser.email);
+    console.log('Login credentials:');
+    console.log('Email: admin@shoptexxolution.com');
+    console.log('Password: admin123456');
+    console.log('');
+    console.log('🔒 Please change the admin password after first login!');
   } catch (error) {
-    console.error("Error creating admin user:", error.message);
+    console.error('Error creating admin user:', error.message);
   } finally {
     // Close database connection
     await mongoose.connection.close();
-    console.log("Database connection closed");
+    console.log('Database connection closed');
   }
 };
 
@@ -62,26 +62,26 @@ const createSampleUsers = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log("Connected to MongoDB");
+    console.log('Connected to MongoDB');
 
     const sampleUsers = [
       {
-        name: "Editor User",
-        email: "editor@shoptexxolution.com",
-        passwordHash: "editor123456",
-        role: "editor",
-        status: "active",
+        name: 'Editor User',
+        email: 'editor@shoptexxolution.com',
+        passwordHash: 'editor123456',
+        role: 'editor',
+        status: 'active',
         isEmailVerified: true,
-        department: "Content Management",
+        department: 'Content Management',
       },
       {
-        name: "Viewer User",
-        email: "viewer@shoptexxolution.com",
-        passwordHash: "viewer123456",
-        role: "viewer",
-        status: "active",
+        name: 'Viewer User',
+        email: 'viewer@shoptexxolution.com',
+        passwordHash: 'viewer123456',
+        role: 'viewer',
+        status: 'active',
         isEmailVerified: true,
-        department: "Sales",
+        department: 'Sales',
       },
     ];
 
@@ -96,11 +96,11 @@ const createSampleUsers = async () => {
       }
     }
   } catch (error) {
-    console.error("Error creating sample users:", error.message);
+    console.error('Error creating sample users:', error.message);
   } finally {
     // Close database connection
     await mongoose.connection.close();
-    console.log("Database connection closed");
+    console.log('Database connection closed');
   }
 };
 
@@ -108,22 +108,22 @@ const createSampleUsers = async () => {
 const command = process.argv[2];
 
 switch (command) {
-  case "admin":
-    createAdminUser();
-    break;
-  case "sample":
-    createSampleUsers();
-    break;
-  case "all":
-    (async () => {
-      await createAdminUser();
-      await createSampleUsers();
-    })();
-    break;
-  default:
-    console.log("Usage: node src/utils/seedUsers.js [admin|sample|all]");
-    console.log("  admin  - Create admin user only");
-    console.log("  sample - Create sample users only");
-    console.log("  all    - Create admin and sample users");
-    break;
+case 'admin':
+  createAdminUser();
+  break;
+case 'sample':
+  createSampleUsers();
+  break;
+case 'all':
+  (async () => {
+    await createAdminUser();
+    await createSampleUsers();
+  })();
+  break;
+default:
+  console.log('Usage: node src/utils/seedUsers.js [admin|sample|all]');
+  console.log('  admin  - Create admin user only');
+  console.log('  sample - Create sample users only');
+  console.log('  all    - Create admin and sample users');
+  break;
 }

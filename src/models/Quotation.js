@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 // Define the Quotation schema
@@ -7,7 +7,7 @@ const QuotationSchema = new Schema(
     // Reference to enquiry
     enquiryId: {
       type: Schema.Types.ObjectId,
-      ref: "Enquiry",
+      ref: 'Enquiry',
       required: true,
       index: true,
     },
@@ -40,7 +40,7 @@ const QuotationSchema = new Schema(
       lowercase: true,
       match: [
         /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-        "Please enter a valid email address",
+        'Please enter a valid email address',
       ],
     },
 
@@ -49,7 +49,7 @@ const QuotationSchema = new Schema(
       {
         productId: {
           type: Schema.Types.ObjectId,
-          ref: "Product",
+          ref: 'Product',
           required: true,
         },
         productName: {
@@ -108,15 +108,15 @@ const QuotationSchema = new Schema(
     // Status management
     status: {
       type: String,
-      enum: ["draft", "sent", "accepted", "declined", "expired"],
-      default: "draft",
+      enum: ['draft', 'sent', 'accepted', 'declined', 'expired'],
+      default: 'draft',
       index: true,
     },
 
     // Creator information
     createdBy: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
 
@@ -124,8 +124,8 @@ const QuotationSchema = new Schema(
     currency: {
       type: String,
       required: true,
-      default: "USD",
-      enum: ["USD", "EUR", "INR", "GBP"],
+      default: 'USD',
+      enum: ['USD', 'EUR', 'INR', 'GBP'],
     },
 
     // Tax and shipping
@@ -149,14 +149,14 @@ const QuotationSchema = new Schema(
     paymentTerms: {
       type: String,
       enum: [
-        "advance",
-        "30_days",
-        "60_days",
-        "90_days",
-        "on_delivery",
-        "custom",
+        'advance',
+        '30_days',
+        '60_days',
+        '90_days',
+        'on_delivery',
+        'custom',
       ],
-      default: "30_days",
+      default: '30_days',
     },
     customPaymentTerms: {
       type: String,
@@ -176,7 +176,7 @@ const QuotationSchema = new Schema(
         modifiedAt: Date,
         modifiedBy: {
           type: Schema.Types.ObjectId,
-          ref: "User",
+          ref: 'User',
         },
         changes: String,
       },
@@ -188,7 +188,7 @@ const QuotationSchema = new Schema(
     },
     sentBy: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
     },
     viewedAt: {
       type: Date,
@@ -220,7 +220,7 @@ const QuotationSchema = new Schema(
         },
         addedBy: {
           type: Schema.Types.ObjectId,
-          ref: "User",
+          ref: 'User',
           required: true,
         },
         addedAt: {
@@ -234,7 +234,7 @@ const QuotationSchema = new Schema(
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-  }
+  },
 );
 
 // Indexes for better query performance
@@ -247,7 +247,7 @@ QuotationSchema.index({ quotationNo: 1 });
 QuotationSchema.index({ company: 1 });
 
 // Virtual for subtotal (before tax and shipping)
-QuotationSchema.virtual("subtotal").get(function () {
+QuotationSchema.virtual('subtotal').get(function () {
   return this.products.reduce((total, product) => {
     const discountedPrice =
       product.unitPrice * (1 - (product.discount || 0) / 100);
@@ -256,17 +256,17 @@ QuotationSchema.virtual("subtotal").get(function () {
 });
 
 // Virtual for tax amount
-QuotationSchema.virtual("taxAmount").get(function () {
+QuotationSchema.virtual('taxAmount').get(function () {
   return (this.subtotal * (this.taxRate || 0)) / 100;
 });
 
 // Virtual for total amount
-QuotationSchema.virtual("totalAmount").get(function () {
+QuotationSchema.virtual('totalAmount').get(function () {
   return this.subtotal + this.taxAmount + (this.shippingCost || 0);
 });
 
 // Virtual for days until expiry
-QuotationSchema.virtual("daysUntilExpiry").get(function () {
+QuotationSchema.virtual('daysUntilExpiry').get(function () {
   if (!this.validUntil) return null;
   const now = new Date();
   const expiry = this.validUntil;
@@ -275,13 +275,13 @@ QuotationSchema.virtual("daysUntilExpiry").get(function () {
 });
 
 // Virtual for expired status
-QuotationSchema.virtual("isExpired").get(function () {
+QuotationSchema.virtual('isExpired').get(function () {
   if (!this.validUntil) return false;
-  return new Date() > this.validUntil && this.status === "sent";
+  return new Date() > this.validUntil && this.status === 'sent';
 });
 
 // Virtual for response time (how long customer took to respond)
-QuotationSchema.virtual("responseTime").get(function () {
+QuotationSchema.virtual('responseTime').get(function () {
   if (!this.sentAt || (!this.acceptedAt && !this.declinedAt)) return null;
   const responseDate = this.acceptedAt || this.declinedAt;
   const diffTime = responseDate - this.sentAt;
@@ -289,11 +289,11 @@ QuotationSchema.virtual("responseTime").get(function () {
 });
 
 // Pre-save middleware to generate quotation number
-QuotationSchema.pre("save", async function (next) {
+QuotationSchema.pre('save', async function (next) {
   if (this.isNew && !this.quotationNo) {
     const now = new Date();
     const year = now.getFullYear().toString().substr(-2);
-    const month = (now.getMonth() + 1).toString().padStart(2, "0");
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
 
     // Find the last quotation number for this month
     const lastQuotation = await this.constructor
@@ -310,29 +310,29 @@ QuotationSchema.pre("save", async function (next) {
 
     this.quotationNo = `QUO${year}${month}${sequence
       .toString()
-      .padStart(4, "0")}`;
+      .padStart(4, '0')}`;
   }
 
   // Auto-expire quotations that are past their validity date
   if (
     this.validUntil &&
     new Date() > this.validUntil &&
-    this.status === "sent"
+    this.status === 'sent'
   ) {
-    this.status = "expired";
+    this.status = 'expired';
   }
 
   next();
 });
 
 // Pre-save middleware to track revisions
-QuotationSchema.pre("save", function (next) {
-  if (!this.isNew && this.isModified("products")) {
+QuotationSchema.pre('save', function (next) {
+  if (!this.isNew && this.isModified('products')) {
     this.previousRevisions.push({
       revisionNo: this.revision,
       modifiedAt: new Date(),
       modifiedBy: this.modifiedBy, // This should be set by the controller
-      changes: "Products modified",
+      changes: 'Products modified',
     });
     this.revision += 1;
   }
@@ -342,9 +342,9 @@ QuotationSchema.pre("save", function (next) {
 // Static method to get quotations by status
 QuotationSchema.statics.getByStatus = function (status, limit = 50) {
   return this.find({ status })
-    .populate("enquiryId", "enquiryNo customerName")
-    .populate("products.productId", "name sku category")
-    .populate("createdBy", "name email")
+    .populate('enquiryId', 'enquiryNo customerName')
+    .populate('products.productId', 'name sku category')
+    .populate('createdBy', 'name email')
     .sort({ createdAt: -1 })
     .limit(limit);
 };
@@ -353,9 +353,9 @@ QuotationSchema.statics.getByStatus = function (status, limit = 50) {
 QuotationSchema.statics.getExpired = function () {
   return this.find({
     validUntil: { $lt: new Date() },
-    status: "sent",
+    status: 'sent',
   })
-    .populate("createdBy", "name email")
+    .populate('createdBy', 'name email')
     .sort({ validUntil: 1 });
 };
 
@@ -363,15 +363,15 @@ QuotationSchema.statics.getExpired = function () {
 QuotationSchema.statics.getRequiringFollowUp = function () {
   return this.find({
     followUpDate: { $lt: new Date() },
-    status: "sent",
+    status: 'sent',
   })
-    .populate("createdBy", "name email")
+    .populate('createdBy', 'name email')
     .sort({ followUpDate: 1 });
 };
 
 // Instance method to send quotation
 QuotationSchema.methods.markAsSent = function (userId) {
-  this.status = "sent";
+  this.status = 'sent';
   this.sentAt = new Date();
   this.sentBy = userId;
   return this.save();
@@ -379,14 +379,14 @@ QuotationSchema.methods.markAsSent = function (userId) {
 
 // Instance method to accept quotation
 QuotationSchema.methods.accept = function () {
-  this.status = "accepted";
+  this.status = 'accepted';
   this.acceptedAt = new Date();
   return this.save();
 };
 
 // Instance method to decline quotation
 QuotationSchema.methods.decline = function (reason) {
-  this.status = "declined";
+  this.status = 'declined';
   this.declinedAt = new Date();
   this.declineReason = reason;
   return this.save();
@@ -410,8 +410,8 @@ QuotationSchema.methods.createRevision = function (changes, userId) {
     changes: changes,
   });
   this.revision += 1;
-  this.status = "draft"; // Reset to draft for review
+  this.status = 'draft'; // Reset to draft for review
   return this.save();
 };
 
-module.exports = mongoose.model("TexxolutionQuotation", QuotationSchema);
+module.exports = mongoose.model('TexxolutionQuotation', QuotationSchema);

@@ -1,5 +1,6 @@
-const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
+/* eslint-disable consistent-return */
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const { Schema } = mongoose;
 
 // Define the User schema
@@ -20,7 +21,7 @@ const UserSchema = new Schema(
       lowercase: true,
       match: [
         /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-        "Please enter a valid email address",
+        'Please enter a valid email address',
       ],
       index: true,
     },
@@ -33,16 +34,16 @@ const UserSchema = new Schema(
     // Role-based access control
     role: {
       type: String,
-      enum: ["admin", "editor", "viewer"],
-      default: "viewer",
+      enum: ['admin', 'editor', 'viewer'],
+      default: 'viewer',
       index: true,
     },
 
     // Account status
     status: {
       type: String,
-      enum: ["active", "suspended"],
-      default: "active",
+      enum: ['active', 'suspended'],
+      default: 'active',
       index: true,
     },
 
@@ -106,23 +107,23 @@ const UserSchema = new Schema(
       },
       timezone: {
         type: String,
-        default: "UTC",
+        default: 'UTC',
       },
       language: {
         type: String,
-        default: "en",
-        enum: ["en", "es", "fr", "de"],
+        default: 'en',
+        enum: ['en', 'es', 'fr', 'de'],
       },
     },
 
     // Audit fields
     createdBy: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
     },
     updatedBy: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
     },
   },
   {
@@ -137,7 +138,7 @@ const UserSchema = new Schema(
       },
     },
     toObject: { virtuals: true },
-  }
+  },
 );
 
 // Indexes for better query performance
@@ -147,29 +148,29 @@ UserSchema.index({ status: 1 });
 UserSchema.index({ lastLogin: -1 });
 
 // Virtual for account lock status
-UserSchema.virtual("isLocked").get(function () {
+UserSchema.virtual('isLocked').get(function () {
   return !!(this.lockUntil && this.lockUntil > Date.now());
 });
 
 // Virtual for full role permissions
-UserSchema.virtual("permissions").get(function () {
+UserSchema.virtual('permissions').get(function () {
   const rolePermissions = {
-    admin: ["read", "write", "delete", "manage_users", "manage_system"],
-    editor: ["read", "write"],
-    viewer: ["read"],
+    admin: ['read', 'write', 'delete', 'manage_users', 'manage_system'],
+    editor: ['read', 'write'],
+    viewer: ['read'],
   };
   return rolePermissions[this.role] || [];
 });
 
 // Virtual for display name
-UserSchema.virtual("displayName").get(function () {
+UserSchema.virtual('displayName').get(function () {
   return this.name || this.email;
 });
 
 // Pre-save middleware to hash password
-UserSchema.pre("save", async function (next) {
+UserSchema.pre('save', async function (next) {
   // Only hash the password if it has been modified (or is new)
-  if (!this.isModified("passwordHash")) return next();
+  if (!this.isModified('passwordHash')) return next();
 
   try {
     // Hash password with cost of 12
@@ -182,7 +183,7 @@ UserSchema.pre("save", async function (next) {
 });
 
 // Pre-save middleware to track updates
-UserSchema.pre("save", function (next) {
+UserSchema.pre('save', function (next) {
   if (!this.isNew && this.isModified()) {
     this.updatedAt = new Date();
   }
@@ -234,19 +235,19 @@ UserSchema.methods.hasPermission = function (permission) {
 
 // Instance method to check if user has any of the given roles
 UserSchema.methods.hasRole = function (roles) {
-  if (typeof roles === "string") roles = [roles];
+  if (typeof roles === 'string') roles = [roles];
   return roles.includes(this.role);
 };
 
 // Instance method to generate password reset token
 UserSchema.methods.createPasswordResetToken = function () {
-  const crypto = require("crypto");
-  const resetToken = crypto.randomBytes(32).toString("hex");
+  const crypto = require('crypto');
+  const resetToken = crypto.randomBytes(32).toString('hex');
 
   this.passwordResetToken = crypto
-    .createHash("sha256")
+    .createHash('sha256')
     .update(resetToken)
-    .digest("hex");
+    .digest('hex');
 
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
 
@@ -255,13 +256,13 @@ UserSchema.methods.createPasswordResetToken = function () {
 
 // Instance method to generate email verification token
 UserSchema.methods.createEmailVerificationToken = function () {
-  const crypto = require("crypto");
-  const verificationToken = crypto.randomBytes(32).toString("hex");
+  const crypto = require('crypto');
+  const verificationToken = crypto.randomBytes(32).toString('hex');
 
   this.emailVerificationToken = crypto
-    .createHash("sha256")
+    .createHash('sha256')
     .update(verificationToken)
-    .digest("hex");
+    .digest('hex');
 
   this.emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
 
@@ -275,29 +276,29 @@ UserSchema.statics.findByEmail = function (email) {
 
 // Static method to find active users
 UserSchema.statics.findActive = function () {
-  return this.find({ status: "active" });
+  return this.find({ status: 'active' });
 };
 
 // Static method to find by role
 UserSchema.statics.findByRole = function (role) {
-  return this.find({ role, status: "active" });
+  return this.find({ role, status: 'active' });
 };
 
 // Static method to create admin user (for seeding)
 UserSchema.statics.createAdmin = async function (userData) {
-  const existingAdmin = await this.findOne({ role: "admin" });
+  const existingAdmin = await this.findOne({ role: 'admin' });
   if (existingAdmin) {
-    throw new Error("Admin user already exists");
+    throw new Error('Admin user already exists');
   }
 
   const adminData = {
     ...userData,
-    role: "admin",
-    status: "active",
+    role: 'admin',
+    status: 'active',
     isEmailVerified: true,
   };
 
   return this.create(adminData);
 };
 
-module.exports = mongoose.model("TexxolutionUser", UserSchema);
+module.exports = mongoose.model('TexxolutionUser', UserSchema);

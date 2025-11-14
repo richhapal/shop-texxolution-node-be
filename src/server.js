@@ -1,11 +1,18 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const dotenv = require("dotenv");
+/**
+ * 🚀 Shop Texxolution API Server
+ * Main Express server configuration with MongoDB connection, CORS setup,
+ * and route mounting for public (no auth) and dashboard (JWT auth) endpoints.
+ * Includes health check endpoint and centralized error handling.
+ */
+
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const dotenv = require('dotenv');
 // Routes
 // Import route modules
-const publicRoutes = require("./routes/public");
-const dashboardRoutes = require("./routes/dashboard");
+const publicRoutes = require('./routes/public');
+const dashboardRoutes = require('./routes/dashboard');
 
 // Load environment variables
 dotenv.config();
@@ -22,49 +29,49 @@ app.use(express.urlencoded({ extended: true }));
 mongoose
   .connect(process.env.MONGODB_URL)
   .then(() => {
-    console.log("Connected to MongoDB successfully");
+    // MongoDB connected successfully - no console output needed in production
   })
-  .catch((error) => {
-    console.error("MongoDB connection error:", error);
+  .catch(error => {
+    console.error('MongoDB connection error:', error);
     process.exit(1);
   });
 
 // Basic route
-app.get("/", (req, res) => {
+app.get('/', (req, res) => {
   res.json({
-    message: "Welcome to Shop Texxolution API",
-    status: "Server is running successfully",
+    message: 'Welcome to Shop Texxolution API',
+    status: 'Server is running successfully',
     timestamp: new Date().toISOString(),
   });
 });
 
 // Health check route
-app.get("/health", (req, res) => {
+app.get('/health', (req, res) => {
   res.json({
-    status: "OK",
-    message: "Server is healthy",
+    status: 'OK',
+    message: 'Server is healthy',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
   });
 });
 
 // Mount routes
-app.use("/api/public", publicRoutes);
-app.use("/api/dashboard", dashboardRoutes);
+app.use('/api/public', publicRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Error handling middleware
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   console.error(err.stack);
   res.status(500).json({
-    message: "Something went wrong!",
-    error: process.env.NODE_ENV === "development" ? err.message : {},
+    message: 'Something went wrong!',
+    error: process.env.NODE_ENV === 'development' ? err.message : {},
   });
 });
 
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({
-    message: "Route not found",
+    message: 'Route not found',
     path: req.originalUrl,
   });
 });
@@ -72,9 +79,12 @@ app.use((req, res) => {
 // Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV}`);
-  console.log(`API URL: http://localhost:${PORT}`);
+  // Server started successfully - console output only for development
+  if (process.env.NODE_ENV === 'development') {
+    console.warn(`Server is running on port ${PORT}`);
+    console.warn(`Environment: ${process.env.NODE_ENV}`);
+    console.warn(`API URL: http://localhost:${PORT}`);
+  }
 });
 
 module.exports = app;

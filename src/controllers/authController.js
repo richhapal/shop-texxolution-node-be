@@ -1,5 +1,6 @@
-const User = require("../models/User");
-const { generateToken, generateRefreshToken } = require("../middleware/auth");
+/* eslint-disable consistent-return */
+const User = require('../models/User');
+const { generateToken, generateRefreshToken } = require('../middleware/auth');
 
 /**
  * Login user and issue JWT
@@ -12,7 +13,7 @@ const login = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Email and password are required.",
+        message: 'Email and password are required.',
       });
     }
 
@@ -22,7 +23,7 @@ const login = async (req, res) => {
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password.",
+        message: 'Invalid email or password.',
       });
     }
 
@@ -31,15 +32,15 @@ const login = async (req, res) => {
       return res.status(401).json({
         success: false,
         message:
-          "Account is temporarily locked due to too many failed login attempts.",
+          'Account is temporarily locked due to too many failed login attempts.',
       });
     }
 
     // Check if account is suspended
-    if (user.status !== "active") {
+    if (user.status !== 'active') {
       return res.status(401).json({
         success: false,
-        message: "Account is suspended. Please contact administrator.",
+        message: 'Account is suspended. Please contact administrator.',
       });
     }
 
@@ -52,7 +53,7 @@ const login = async (req, res) => {
 
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password.",
+        message: 'Invalid email or password.',
       });
     }
 
@@ -68,19 +69,19 @@ const login = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Login successful.",
+      message: 'Login successful.',
       data: {
         user: userData,
         token,
         refreshToken,
-        expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+        expiresIn: process.env.JWT_EXPIRES_IN || '7d',
       },
     });
   } catch (error) {
-    console.error("Login error:", error);
+    console.error('Login error:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error during login.",
+      message: 'Internal server error during login.',
     });
   }
 };
@@ -99,18 +100,18 @@ const refreshToken = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Token refreshed successfully.",
+      message: 'Token refreshed successfully.',
       data: {
         token: newToken,
         refreshToken: newRefreshToken,
-        expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+        expiresIn: process.env.JWT_EXPIRES_IN || '7d',
       },
     });
   } catch (error) {
-    console.error("Token refresh error:", error);
+    console.error('Token refresh error:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error during token refresh.",
+      message: 'Internal server error during token refresh.',
     });
   }
 };
@@ -125,16 +126,16 @@ const getProfile = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Profile retrieved successfully.",
+      message: 'Profile retrieved successfully.',
       data: {
         user: user.toJSON(),
       },
     });
   } catch (error) {
-    console.error("Get profile error:", error);
+    console.error('Get profile error:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error while retrieving profile.",
+      message: 'Internal server error while retrieving profile.',
     });
   }
 };
@@ -161,27 +162,27 @@ const updateProfile = async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
       new: true,
       runValidators: true,
-    }).select("-passwordHash");
+    }).select('-passwordHash');
 
     if (!updatedUser) {
       return res.status(404).json({
         success: false,
-        message: "User not found.",
+        message: 'User not found.',
       });
     }
 
     res.json({
       success: true,
-      message: "Profile updated successfully.",
+      message: 'Profile updated successfully.',
       data: {
         user: updatedUser.toJSON(),
       },
     });
   } catch (error) {
-    console.error("Update profile error:", error);
+    console.error('Update profile error:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error while updating profile.",
+      message: 'Internal server error while updating profile.',
     });
   }
 };
@@ -199,21 +200,21 @@ const changePassword = async (req, res) => {
       return res.status(400).json({
         success: false,
         message:
-          "Current password, new password, and confirmation are required.",
+          'Current password, new password, and confirmation are required.',
       });
     }
 
     if (newPassword !== confirmPassword) {
       return res.status(400).json({
         success: false,
-        message: "New password and confirmation do not match.",
+        message: 'New password and confirmation do not match.',
       });
     }
 
     if (newPassword.length < 6) {
       return res.status(400).json({
         success: false,
-        message: "New password must be at least 6 characters long.",
+        message: 'New password must be at least 6 characters long.',
       });
     }
 
@@ -223,7 +224,7 @@ const changePassword = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found.",
+        message: 'User not found.',
       });
     }
 
@@ -233,7 +234,7 @@ const changePassword = async (req, res) => {
     if (!isCurrentPasswordValid) {
       return res.status(401).json({
         success: false,
-        message: "Current password is incorrect.",
+        message: 'Current password is incorrect.',
       });
     }
 
@@ -244,13 +245,13 @@ const changePassword = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Password changed successfully.",
+      message: 'Password changed successfully.',
     });
   } catch (error) {
-    console.error("Change password error:", error);
+    console.error('Change password error:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error while changing password.",
+      message: 'Internal server error while changing password.',
     });
   }
 };
@@ -268,13 +269,13 @@ const logout = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Logged out successfully.",
+      message: 'Logged out successfully.',
     });
   } catch (error) {
-    console.error("Logout error:", error);
+    console.error('Logout error:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error during logout.",
+      message: 'Internal server error during logout.',
     });
   }
 };

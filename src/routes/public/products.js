@@ -1,22 +1,30 @@
-const express = require("express");
+/**
+ * 🛍️ Public Product Catalog Routes
+ * Handles product browsing, filtering, search, and enquiry submission.
+ * Features: Redis caching, rate limiting, SEO-friendly uniqueId lookups.
+ * Routes: GET /products, GET /products/:uniqueId, POST /enquiries
+ * No authentication required - public access for customers.
+ */
+
+const express = require('express');
 const {
   getProducts,
   getProductById,
   getCategories,
   searchProducts,
   getRelatedProducts,
-} = require("../../controllers/productController");
+} = require('../../controllers/productController');
 const {
   createEnquiry,
   getEnquiryStatus,
   subscribeNewsletter,
   submitContactForm,
-} = require("../../controllers/enquiryController");
+} = require('../../controllers/enquiryController');
 
 const router = express.Router();
 
 // Rate limiting middleware for public routes
-const rateLimit = require("express-rate-limit");
+const rateLimit = require('express-rate-limit');
 
 // General rate limiter for most routes
 const generalLimiter = rateLimit({
@@ -24,7 +32,7 @@ const generalLimiter = rateLimit({
   max: 100, // Limit each IP to 100 requests per windowMs
   message: {
     success: false,
-    message: "Too many requests from this IP, please try again later.",
+    message: 'Too many requests from this IP, please try again later.',
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -36,7 +44,7 @@ const formLimiter = rateLimit({
   max: 5, // Limit each IP to 5 form submissions per windowMs
   message: {
     success: false,
-    message: "Too many form submissions, please try again later.",
+    message: 'Too many form submissions, please try again later.',
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -52,27 +60,27 @@ router.use(generalLimiter);
  * Get all active products with optional filtering
  * Query params: category, page, limit, sort, search, minPrice, maxPrice, color, gsm, tags
  */
-router.get("/products", getProducts);
+router.get('/products', getProducts);
 
 /**
  * GET /api/public/products/search
  * Search products with advanced text search
  * Query params: q (query), category, page, limit, sort
  */
-router.get("/products/search", searchProducts);
+router.get('/products/search', searchProducts);
 
 /**
  * GET /api/public/products/:id
  * Get single product details by ID
  */
-router.get("/products/:id", getProductById);
+router.get('/products/:id', getProductById);
 
 /**
  * GET /api/public/products/:id/related
  * Get related products based on category and tags
  * Query params: limit
  */
-router.get("/products/:id/related", getRelatedProducts);
+router.get('/products/:id/related', getRelatedProducts);
 
 // ==================== CATEGORY ROUTES ====================
 
@@ -80,7 +88,7 @@ router.get("/products/:id/related", getRelatedProducts);
  * GET /api/public/categories
  * Get all product categories with counts and price ranges
  */
-router.get("/categories", getCategories);
+router.get('/categories', getCategories);
 
 // ==================== ENQUIRY ROUTES ====================
 
@@ -89,14 +97,14 @@ router.get("/categories", getCategories);
  * Create new product enquiry
  * Body: { customerName, company, email, phone, message, products: [{ productId, quantity, notes }], attachments? }
  */
-router.post("/enquiry", formLimiter, createEnquiry);
+router.post('/enquiry', formLimiter, createEnquiry);
 
 /**
  * GET /api/public/enquiry/:enquiryNo/status
  * Get enquiry status by enquiry number
  * Query params: email (required for verification)
  */
-router.get("/enquiry/:enquiryNo/status", getEnquiryStatus);
+router.get('/enquiry/:enquiryNo/status', getEnquiryStatus);
 
 // ==================== CONTACT & NEWSLETTER ROUTES ====================
 
@@ -105,14 +113,14 @@ router.get("/enquiry/:enquiryNo/status", getEnquiryStatus);
  * Submit general contact form
  * Body: { name, email, subject, message }
  */
-router.post("/contact", formLimiter, submitContactForm);
+router.post('/contact', formLimiter, submitContactForm);
 
 /**
  * POST /api/public/newsletter
  * Subscribe to newsletter
  * Body: { email, name? }
  */
-router.post("/newsletter", formLimiter, subscribeNewsletter);
+router.post('/newsletter', formLimiter, subscribeNewsletter);
 
 // ==================== UTILITY ROUTES ====================
 
@@ -120,17 +128,17 @@ router.post("/newsletter", formLimiter, subscribeNewsletter);
  * GET /api/public/health
  * Public health check endpoint
  */
-router.get("/health", (req, res) => {
+router.get('/health', (req, res) => {
   res.json({
     success: true,
-    message: "Public API is healthy",
+    message: 'Public API is healthy',
     timestamp: new Date().toISOString(),
     endpoints: {
-      products: "/api/public/products",
-      categories: "/api/public/categories",
-      enquiry: "/api/public/enquiry",
-      contact: "/api/public/contact",
-      newsletter: "/api/public/newsletter",
+      products: '/api/public/products',
+      categories: '/api/public/categories',
+      enquiry: '/api/public/enquiry',
+      contact: '/api/public/contact',
+      newsletter: '/api/public/newsletter',
     },
   });
 });
@@ -139,17 +147,17 @@ router.get("/health", (req, res) => {
  * GET /api/public/stats
  * Get public statistics
  */
-router.get("/stats", async (req, res) => {
+router.get('/stats', async (req, res) => {
   try {
-    const Product = require("../../models/Product");
-    const Enquiry = require("../../models/Enquiry");
+    const Product = require('../../models/Product');
+    const Enquiry = require('../../models/Enquiry');
 
     // Get basic stats
     const [totalProducts, totalCategories, totalEnquiries, recentEnquiries] =
       await Promise.all([
-        Product.countDocuments({ status: "active" }),
-        Product.distinct("category", { status: "active" }).then(
-          (cats) => cats.length
+        Product.countDocuments({ status: 'active' }),
+        Product.distinct('category', { status: 'active' }).then(
+          cats => cats.length,
         ),
         Enquiry.countDocuments(),
         Enquiry.countDocuments({
@@ -159,7 +167,7 @@ router.get("/stats", async (req, res) => {
 
     res.json({
       success: true,
-      message: "Statistics retrieved successfully.",
+      message: 'Statistics retrieved successfully.',
       data: {
         products: {
           total: totalProducts,
@@ -173,10 +181,10 @@ router.get("/stats", async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Get stats error:", error);
+    console.error('Get stats error:', error);
     res.status(500).json({
       success: false,
-      message: "Error retrieving statistics.",
+      message: 'Error retrieving statistics.',
     });
   }
 });

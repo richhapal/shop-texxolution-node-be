@@ -1,5 +1,6 @@
-const Enquiry = require("../models/Enquiry");
-const Product = require("../models/Product");
+/* eslint-disable consistent-return */
+const Enquiry = require('../models/Enquiry');
+const Product = require('../models/Product');
 
 /**
  * Create new enquiry from public form
@@ -13,21 +14,21 @@ const createEnquiry = async (req, res) => {
       phone,
       message,
       products,
-      source = "website",
+      source = 'website',
     } = req.body;
 
     // Validation
     if (!customerName || !company || !email || !phone || !message) {
       return res.status(400).json({
         success: false,
-        message: "All customer information fields are required.",
+        message: 'All customer information fields are required.',
       });
     }
 
     if (!products || !Array.isArray(products) || products.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "At least one product must be specified in the enquiry.",
+        message: 'At least one product must be specified in the enquiry.',
       });
     }
 
@@ -48,8 +49,8 @@ const createEnquiry = async (req, res) => {
       // Verify product exists and is active
       const productExists = await Product.findOne({
         _id: product.productId,
-        status: "active",
-      }).select("name sku category");
+        status: 'active',
+      }).select('name sku category');
 
       if (!productExists) {
         return res.status(400).json({
@@ -62,7 +63,7 @@ const createEnquiry = async (req, res) => {
         productId: product.productId,
         productName: productExists.name,
         quantity: parseInt(product.quantity),
-        notes: product.notes || "",
+        notes: product.notes || '',
       });
     }
 
@@ -75,13 +76,13 @@ const createEnquiry = async (req, res) => {
       message: message.trim(),
       products: productValidation,
       source,
-      status: "new",
+      status: 'new',
     };
 
     // Add attachments if provided
     if (req.body.attachments && Array.isArray(req.body.attachments)) {
       enquiryData.attachments = req.body.attachments.filter(
-        (att) => att && att.trim()
+        att => att && att.trim(),
       );
     }
 
@@ -90,15 +91,15 @@ const createEnquiry = async (req, res) => {
     // Populate product details for response
     const populatedEnquiry = await Enquiry.findById(enquiry._id)
       .populate(
-        "products.productId",
-        "name sku category images.main pricing.basePrice"
+        'products.productId',
+        'name sku category images.main pricing.basePrice',
       )
       .lean();
 
     // Send success response
     res.status(201).json({
       success: true,
-      message: "Enquiry submitted successfully. We will contact you soon.",
+      message: 'Enquiry submitted successfully. We will contact you soon.',
       data: {
         enquiry: {
           enquiryNo: populatedEnquiry.enquiryNo,
@@ -113,30 +114,30 @@ const createEnquiry = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Create enquiry error:", error);
+    console.error('Create enquiry error:', error);
 
     // Handle duplicate email in short time frame
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
         message:
-          "An enquiry from this email already exists. Please wait before submitting another enquiry.",
+          'An enquiry from this email already exists. Please wait before submitting another enquiry.',
       });
     }
 
     // Handle validation errors
-    if (error.name === "ValidationError") {
-      const errors = Object.values(error.errors).map((err) => err.message);
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({
         success: false,
-        message: "Validation error.",
+        message: 'Validation error.',
         errors,
       });
     }
 
     res.status(500).json({
       success: false,
-      message: "Internal server error while creating enquiry.",
+      message: 'Internal server error while creating enquiry.',
     });
   }
 };
@@ -152,7 +153,7 @@ const getEnquiryStatus = async (req, res) => {
     if (!enquiryNo || !email) {
       return res.status(400).json({
         success: false,
-        message: "Enquiry number and email are required.",
+        message: 'Enquiry number and email are required.',
       });
     }
 
@@ -161,29 +162,29 @@ const getEnquiryStatus = async (req, res) => {
       email: email.toLowerCase().trim(),
     })
       .select(
-        "enquiryNo customerName company status createdAt products.productName products.quantity"
+        'enquiryNo customerName company status createdAt products.productName products.quantity',
       )
       .lean();
 
     if (!enquiry) {
       return res.status(404).json({
         success: false,
-        message: "Enquiry not found or email does not match.",
+        message: 'Enquiry not found or email does not match.',
       });
     }
 
     // Map status to user-friendly messages
     const statusMessages = {
-      new: "We have received your enquiry and will review it shortly.",
-      in_review: "Your enquiry is being reviewed by our team.",
+      new: 'We have received your enquiry and will review it shortly.',
+      in_review: 'Your enquiry is being reviewed by our team.',
       approved:
-        "Your enquiry has been approved. A quotation will be sent to you.",
-      rejected: "Your enquiry could not be processed at this time.",
+        'Your enquiry has been approved. A quotation will be sent to you.',
+      rejected: 'Your enquiry could not be processed at this time.',
     };
 
     res.json({
       success: true,
-      message: "Enquiry status retrieved successfully.",
+      message: 'Enquiry status retrieved successfully.',
       data: {
         enquiry: {
           enquiryNo: enquiry.enquiryNo,
@@ -195,16 +196,16 @@ const getEnquiryStatus = async (req, res) => {
           productCount: enquiry.products.length,
           totalQuantity: enquiry.products.reduce(
             (sum, p) => sum + p.quantity,
-            0
+            0,
           ),
         },
       },
     });
   } catch (error) {
-    console.error("Get enquiry status error:", error);
+    console.error('Get enquiry status error:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error while retrieving enquiry status.",
+      message: 'Internal server error while retrieving enquiry status.',
     });
   }
 };
@@ -214,12 +215,12 @@ const getEnquiryStatus = async (req, res) => {
  */
 const subscribeNewsletter = async (req, res) => {
   try {
-    const { email, name } = req.body;
+    const { email } = req.body;
 
     if (!email) {
       return res.status(400).json({
         success: false,
-        message: "Email is required for subscription.",
+        message: 'Email is required for subscription.',
       });
     }
 
@@ -228,7 +229,7 @@ const subscribeNewsletter = async (req, res) => {
     if (!emailRegex.test(email)) {
       return res.status(400).json({
         success: false,
-        message: "Please provide a valid email address.",
+        message: 'Please provide a valid email address.',
       });
     }
 
@@ -237,13 +238,13 @@ const subscribeNewsletter = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Thank you for subscribing to our newsletter!",
+      message: 'Thank you for subscribing to our newsletter!',
     });
   } catch (error) {
-    console.error("Newsletter subscription error:", error);
+    console.error('Newsletter subscription error:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error during newsletter subscription.",
+      message: 'Internal server error during newsletter subscription.',
     });
   }
 };
@@ -259,20 +260,20 @@ const submitContactForm = async (req, res) => {
     if (!name || !email || !subject || !message) {
       return res.status(400).json({
         success: false,
-        message: "All fields (name, email, subject, message) are required.",
+        message: 'All fields (name, email, subject, message) are required.',
       });
     }
 
     // Create a general enquiry for contact form submissions
     const enquiryData = {
       customerName: name.trim(),
-      company: "N/A", // Default for contact form
+      company: 'N/A', // Default for contact form
       email: email.toLowerCase().trim(),
-      phone: "N/A", // Default for contact form
+      phone: 'N/A', // Default for contact form
       message: `Subject: ${subject.trim()}\n\n${message.trim()}`,
       products: [], // No products for general contact
-      source: "contact_form",
-      status: "new",
+      source: 'contact_form',
+      status: 'new',
     };
 
     const enquiry = await Enquiry.create(enquiryData);
@@ -280,16 +281,16 @@ const submitContactForm = async (req, res) => {
     res.json({
       success: true,
       message:
-        "Your message has been sent successfully. We will get back to you soon.",
+        'Your message has been sent successfully. We will get back to you soon.',
       data: {
         enquiryNo: enquiry.enquiryNo,
       },
     });
   } catch (error) {
-    console.error("Contact form submission error:", error);
+    console.error('Contact form submission error:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error while submitting contact form.",
+      message: 'Internal server error while submitting contact form.',
     });
   }
 };

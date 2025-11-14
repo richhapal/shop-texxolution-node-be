@@ -1,4 +1,5 @@
-const mongoose = require("mongoose");
+/* eslint-disable no-useless-escape */
+const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 // Define the Enquiry schema
@@ -24,14 +25,14 @@ const EnquirySchema = new Schema(
       lowercase: true,
       match: [
         /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-        "Please enter a valid email address",
+        'Please enter a valid email address',
       ],
     },
     phone: {
       type: String,
       required: true,
       trim: true,
-      match: [/^[\+]?[1-9][\d]{0,15}$/, "Please enter a valid phone number"],
+      match: [/^[\+]?[1-9][\d]{0,15}$/, 'Please enter a valid phone number'],
     },
     message: {
       type: String,
@@ -45,7 +46,7 @@ const EnquirySchema = new Schema(
       {
         productId: {
           type: Schema.Types.ObjectId,
-          ref: "Product",
+          ref: 'Product',
           required: true,
         },
         productName: {
@@ -77,29 +78,29 @@ const EnquirySchema = new Schema(
     // Status management
     status: {
       type: String,
-      enum: ["new", "in_review", "approved", "rejected"],
-      default: "new",
+      enum: ['new', 'in_review', 'approved', 'rejected'],
+      default: 'new',
       index: true,
     },
 
     // Assignment and tracking
     assignedTo: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
     },
 
     // Additional metadata
     priority: {
       type: String,
-      enum: ["low", "medium", "high", "urgent"],
-      default: "medium",
+      enum: ['low', 'medium', 'high', 'urgent'],
+      default: 'medium',
     },
 
     // Source tracking
     source: {
       type: String,
-      enum: ["website", "email", "phone", "referral", "trade_show", "other"],
-      default: "website",
+      enum: ['website', 'email', 'phone', 'referral', 'trade_show', 'other'],
+      default: 'website',
     },
 
     // Follow-up tracking
@@ -117,7 +118,7 @@ const EnquirySchema = new Schema(
         },
         addedBy: {
           type: Schema.Types.ObjectId,
-          ref: "User",
+          ref: 'User',
           required: true,
         },
         addedAt: {
@@ -132,7 +133,7 @@ const EnquirySchema = new Schema(
       {
         type: {
           type: String,
-          enum: ["email", "phone", "meeting", "other"],
+          enum: ['email', 'phone', 'meeting', 'other'],
           required: true,
         },
         subject: {
@@ -147,12 +148,12 @@ const EnquirySchema = new Schema(
         },
         direction: {
           type: String,
-          enum: ["inbound", "outbound"],
+          enum: ['inbound', 'outbound'],
           required: true,
         },
         handledBy: {
           type: Schema.Types.ObjectId,
-          ref: "User",
+          ref: 'User',
         },
         communicatedAt: {
           type: Date,
@@ -172,7 +173,7 @@ const EnquirySchema = new Schema(
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-  }
+  },
 );
 
 // Indexes for better query performance
@@ -184,12 +185,12 @@ EnquirySchema.index({ followUpDate: 1 });
 EnquirySchema.index({ enquiryNo: 1 });
 
 // Virtual for total quantity across all products
-EnquirySchema.virtual("totalQuantity").get(function () {
+EnquirySchema.virtual('totalQuantity').get(function () {
   return this.products.reduce((total, product) => total + product.quantity, 0);
 });
 
 // Virtual for days since enquiry
-EnquirySchema.virtual("daysSinceEnquiry").get(function () {
+EnquirySchema.virtual('daysSinceEnquiry').get(function () {
   const now = new Date();
   const created = this.createdAt;
   const diffTime = Math.abs(now - created);
@@ -197,17 +198,17 @@ EnquirySchema.virtual("daysSinceEnquiry").get(function () {
 });
 
 // Virtual for overdue status
-EnquirySchema.virtual("isOverdue").get(function () {
+EnquirySchema.virtual('isOverdue').get(function () {
   if (!this.followUpDate) return false;
-  return new Date() > this.followUpDate && this.status === "in_review";
+  return new Date() > this.followUpDate && this.status === 'in_review';
 });
 
 // Pre-save middleware to generate enquiry number
-EnquirySchema.pre("save", async function (next) {
+EnquirySchema.pre('save', async function (next) {
   if (this.isNew && !this.enquiryNo) {
     const now = new Date();
     const year = now.getFullYear().toString().substr(-2);
-    const month = (now.getMonth() + 1).toString().padStart(2, "0");
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
 
     // Find the last enquiry number for this month
     const lastEnquiry = await this.constructor
@@ -224,7 +225,7 @@ EnquirySchema.pre("save", async function (next) {
 
     this.enquiryNo = `ENQ${year}${month}${sequence
       .toString()
-      .padStart(4, "0")}`;
+      .padStart(4, '0')}`;
   }
   next();
 });
@@ -232,8 +233,8 @@ EnquirySchema.pre("save", async function (next) {
 // Static method to get enquiries by status
 EnquirySchema.statics.getByStatus = function (status, limit = 50) {
   return this.find({ status })
-    .populate("products.productId", "name sku category")
-    .populate("assignedTo", "name email")
+    .populate('products.productId', 'name sku category')
+    .populate('assignedTo', 'name email')
     .sort({ createdAt: -1 })
     .limit(limit);
 };
@@ -242,9 +243,9 @@ EnquirySchema.statics.getByStatus = function (status, limit = 50) {
 EnquirySchema.statics.getOverdue = function () {
   return this.find({
     followUpDate: { $lt: new Date() },
-    status: "in_review",
+    status: 'in_review',
   })
-    .populate("assignedTo", "name email")
+    .populate('assignedTo', 'name email')
     .sort({ followUpDate: 1 });
 };
 
@@ -266,10 +267,10 @@ EnquirySchema.methods.addCommunication = function (communication) {
 // Instance method to assign to user
 EnquirySchema.methods.assignTo = function (userId) {
   this.assignedTo = userId;
-  if (this.status === "new") {
-    this.status = "in_review";
+  if (this.status === 'new') {
+    this.status = 'in_review';
   }
   return this.save();
 };
 
-module.exports = mongoose.model("TexxolutionEnquiry", EnquirySchema);
+module.exports = mongoose.model('TexxolutionEnquiry', EnquirySchema);

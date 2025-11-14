@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 // Define the Product schema
@@ -29,19 +29,19 @@ const ProductSchema = new Schema(
       type: String,
       required: true,
       enum: [
-        "Yarn",
-        "Garments",
-        "Denim",
-        "Greige Fabric",
-        "Packing",
-        "Machineries & Equipment",
-        "Home Decoration",
-        "Textile Farming",
-        "Fibre",
-        "Fabric (Finished)",
-        "Finished Fabrics",
-        "Trims & Accessories",
-        "Dyes & Chemicals",
+        'Yarn',
+        'Garments',
+        'Denim',
+        'Greige Fabric',
+        'Packing',
+        'Machineries & Equipment',
+        'Home Decoration',
+        'Textile Farming',
+        'Fibre',
+        'Fabric (Finished)',
+        'Finished Fabrics',
+        'Trims & Accessories',
+        'Dyes & Chemicals',
       ],
       index: true,
     },
@@ -116,17 +116,17 @@ const ProductSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["active", "inactive", "draft", "discontinued"],
-      default: "draft",
+      enum: ['active', 'inactive', 'draft', 'discontinued'],
+      default: 'draft',
     },
     createdBy: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     updatedBy: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
 
@@ -144,104 +144,104 @@ const ProductSchema = new Schema(
           // Define validation rules for each category
           const categoryValidations = {
             Yarn: {
-              allowedFields: ["type", "count", "ply", "twist", "packaging"],
+              allowedFields: ['type', 'count', 'ply', 'twist', 'packaging'],
               requiredFields: [],
             },
             Garments: {
               allowedFields: [
-                "productType",
-                "fabricComposition",
-                "gsm",
-                "fit",
-                "sizes",
-                "season",
+                'productType',
+                'fabricComposition',
+                'gsm',
+                'fit',
+                'sizes',
+                'season',
               ],
               requiredFields: [],
             },
             Denim: {
-              allowedFields: ["shade", "stretchPercent", "weave"],
+              allowedFields: ['shade', 'stretchPercent', 'weave'],
               requiredFields: [],
             },
-            "Greige Fabric": {
+            'Greige Fabric': {
               allowedFields: [
-                "construction",
-                "weave",
-                "rollLength",
-                "readyForDyeing",
+                'construction',
+                'weave',
+                'rollLength',
+                'readyForDyeing',
               ],
               requiredFields: [],
             },
             Packing: {
-              allowedFields: ["type", "material", "dimensions", "recyclable"],
+              allowedFields: ['type', 'material', 'dimensions', 'recyclable'],
               requiredFields: [],
             },
-            "Machineries & Equipment": {
+            'Machineries & Equipment': {
               allowedFields: [
-                "machineType",
-                "modelNo",
-                "brand",
-                "capacity",
-                "power",
-                "usage",
+                'machineType',
+                'modelNo',
+                'brand',
+                'capacity',
+                'power',
+                'usage',
               ],
               requiredFields: [],
             },
-            "Home Decoration": {
+            'Home Decoration': {
               allowedFields: [
-                "productType",
-                "fabricType",
-                "designPattern",
-                "size",
-                "usage",
-                "colorOptions",
+                'productType',
+                'fabricType',
+                'designPattern',
+                'size',
+                'usage',
+                'colorOptions',
               ],
               requiredFields: [],
             },
-            "Textile Farming": {
+            'Textile Farming': {
               allowedFields: [
-                "productType",
-                "grade",
-                "moisturePercent",
-                "fibreLength",
-                "region",
-                "harvestSeason",
+                'productType',
+                'grade',
+                'moisturePercent',
+                'fibreLength',
+                'region',
+                'harvestSeason',
               ],
               requiredFields: [],
             },
             Fibre: {
               allowedFields: [
-                "fibreType",
-                "denier",
-                "length",
-                "luster",
-                "packaging",
+                'fibreType',
+                'denier',
+                'length',
+                'luster',
+                'packaging',
               ],
               requiredFields: [],
             },
-            "Fabric (Finished)": {
-              allowedFields: ["fabricType", "pattern", "careInstructions"],
+            'Fabric (Finished)': {
+              allowedFields: ['fabricType', 'pattern', 'careInstructions'],
               requiredFields: [],
             },
-            "Finished Fabrics": {
+            'Finished Fabrics': {
               allowedFields: [
-                "finishType",
-                "performance",
-                "pattern",
-                "colorRange",
+                'finishType',
+                'performance',
+                'pattern',
+                'colorRange',
               ],
               requiredFields: [],
             },
-            "Trims & Accessories": {
-              allowedFields: ["type", "material", "size", "usage"],
+            'Trims & Accessories': {
+              allowedFields: ['type', 'material', 'size', 'usage'],
               requiredFields: [],
             },
-            "Dyes & Chemicals": {
+            'Dyes & Chemicals': {
               allowedFields: [
-                "type",
-                "form",
-                "shade",
-                "concentration",
-                "packaging",
+                'type',
+                'form',
+                'shade',
+                'concentration',
+                'packaging',
               ],
               requiredFields: [],
             },
@@ -253,37 +253,37 @@ const ProductSchema = new Schema(
           // Check if all provided fields are allowed for this category
           const dataFields = Object.keys(data);
           const invalidFields = dataFields.filter(
-            (field) => !validation.allowedFields.includes(field)
+            field => !validation.allowedFields.includes(field),
           );
 
           if (invalidFields.length > 0) {
             this.invalidate(
-              "categoryData",
+              'categoryData',
               `Invalid fields for category ${category}: ${invalidFields.join(
-                ", "
-              )}`
+                ', ',
+              )}`,
             );
             return false;
           }
 
           // Check if all required fields are present
           const missingFields = validation.requiredFields.filter(
-            (field) => !dataFields.includes(field)
+            field => !dataFields.includes(field),
           );
 
           if (missingFields.length > 0) {
             this.invalidate(
-              "categoryData",
+              'categoryData',
               `Missing required fields for category ${category}: ${missingFields.join(
-                ", "
-              )}`
+                ', ',
+              )}`,
             );
             return false;
           }
 
           return true;
         },
-        message: "Invalid category data structure",
+        message: 'Invalid category data structure',
       },
     },
 
@@ -297,8 +297,8 @@ const ProductSchema = new Schema(
       currency: {
         type: String,
         required: true,
-        default: "USD",
-        enum: ["USD", "EUR", "INR", "GBP"],
+        default: 'USD',
+        enum: ['USD', 'EUR', 'INR', 'GBP'],
       },
       discountPercent: {
         type: Number,
@@ -330,7 +330,7 @@ const ProductSchema = new Schema(
     vendor: {
       supplierId: {
         type: Schema.Types.ObjectId,
-        ref: "Supplier",
+        ref: 'Supplier',
       },
       supplierSku: {
         type: String,
@@ -342,26 +342,26 @@ const ProductSchema = new Schema(
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-  }
+  },
 );
 
 // Indexes for better query performance
-ProductSchema.index({ name: "text", description: "text", tags: "text" });
+ProductSchema.index({ name: 'text', description: 'text', tags: 'text' });
 ProductSchema.index({ category: 1, status: 1 });
 ProductSchema.index({ createdAt: -1 });
-ProductSchema.index({ "pricing.basePrice": 1 });
+ProductSchema.index({ 'pricing.basePrice': 1 });
 ProductSchema.index({ sku: 1 });
 
 // Virtual for calculated price after discount
-ProductSchema.virtual("finalPrice").get(function () {
+ProductSchema.virtual('finalPrice').get(function () {
   const discount = this.pricing.discountPercent || 0;
   const basePrice = this.pricing.basePrice || 0;
   return basePrice * (1 - discount / 100);
 });
 
 // Virtual for availability status
-ProductSchema.virtual("isAvailable").get(function () {
-  return this.status === "active";
+ProductSchema.virtual('isAvailable').get(function () {
+  return this.status === 'active';
 });
 
 // Helper function to generate unique ID from product name
@@ -369,14 +369,14 @@ function generateUniqueId(name, category) {
   // Remove special characters and convert to lowercase
   const cleanName = name
     .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, "")
-    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, '-')
     .trim();
 
   // Shorten category for ID
   const categoryShort = category
     .toLowerCase()
-    .replace(/[^a-z0-9]/g, "")
+    .replace(/[^a-z0-9]/g, '')
     .substring(0, 8);
 
   // Add timestamp for uniqueness
@@ -386,7 +386,7 @@ function generateUniqueId(name, category) {
 }
 
 // Pre-save middleware to generate uniqueId
-ProductSchema.pre("save", function (next) {
+ProductSchema.pre('save', function (next) {
   if (this.isNew && !this.uniqueId) {
     this.uniqueId = generateUniqueId(this.name, this.category);
   }
@@ -394,8 +394,8 @@ ProductSchema.pre("save", function (next) {
 });
 
 // Pre-save middleware to ensure categoryData structure
-ProductSchema.pre("save", function (next) {
-  if (this.isNew || this.isModified("category")) {
+ProductSchema.pre('save', function (next) {
+  if (this.isNew || this.isModified('category')) {
     // Initialize categoryData if not present
     if (!this.categoryData) {
       this.categoryData = {};
@@ -410,50 +410,50 @@ ProductSchema.statics.getCategoryFields = function (category) {
     Yarn: {
       type: {
         type: String,
-        enum: ["Cotton", "Polyester", "Wool", "Silk", "Linen", "Blended"],
+        enum: ['Cotton', 'Polyester', 'Wool', 'Silk', 'Linen', 'Blended'],
       },
       count: { type: String },
       ply: { type: Number, min: 1 },
-      twist: { type: String, enum: ["S-Twist", "Z-Twist", "No Twist"] },
+      twist: { type: String, enum: ['S-Twist', 'Z-Twist', 'No Twist'] },
       packaging: { type: String },
     },
     Garments: {
       productType: {
         type: String,
-        enum: ["Shirt", "Pants", "Dress", "Jacket", "T-Shirt", "Other"],
+        enum: ['Shirt', 'Pants', 'Dress', 'Jacket', 'T-Shirt', 'Other'],
       },
       fabricComposition: { type: String },
       gsm: { type: Number, min: 0 },
-      fit: { type: String, enum: ["Slim", "Regular", "Loose", "Tailored"] },
+      fit: { type: String, enum: ['Slim', 'Regular', 'Loose', 'Tailored'] },
       sizes: [
-        { type: String, enum: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"] },
+        { type: String, enum: ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'] },
       ],
       season: {
         type: String,
-        enum: ["Spring", "Summer", "Fall", "Winter", "All Season"],
+        enum: ['Spring', 'Summer', 'Fall', 'Winter', 'All Season'],
       },
     },
     Denim: {
       shade: { type: String },
       stretchPercent: { type: Number, min: 0, max: 100 },
-      weave: { type: String, enum: ["Twill", "Plain", "Broken Twill"] },
+      weave: { type: String, enum: ['Twill', 'Plain', 'Broken Twill'] },
     },
-    "Greige Fabric": {
+    'Greige Fabric': {
       construction: { type: String },
       weave: {
         type: String,
-        enum: ["Plain", "Twill", "Satin", "Oxford", "Dobby"],
+        enum: ['Plain', 'Twill', 'Satin', 'Oxford', 'Dobby'],
       },
       rollLength: { type: Number, min: 0 },
       readyForDyeing: { type: Boolean, default: false },
     },
     Packing: {
-      type: { type: String, enum: ["Box", "Bag", "Wrap", "Container"] },
+      type: { type: String, enum: ['Box', 'Bag', 'Wrap', 'Container'] },
       material: { type: String },
       dimensions: { type: String },
       recyclable: { type: Boolean, default: false },
     },
-    "Machineries & Equipment": {
+    'Machineries & Equipment': {
       machineType: { type: String },
       modelNo: { type: String },
       brand: { type: String },
@@ -461,23 +461,23 @@ ProductSchema.statics.getCategoryFields = function (category) {
       power: { type: String },
       usage: { type: String },
     },
-    "Home Decoration": {
+    'Home Decoration': {
       productType: {
         type: String,
-        enum: ["Curtains", "Cushions", "Bedding", "Upholstery", "Wall Hanging"],
+        enum: ['Curtains', 'Cushions', 'Bedding', 'Upholstery', 'Wall Hanging'],
       },
       fabricType: { type: String },
       designPattern: { type: String },
       size: { type: String },
-      usage: { type: String, enum: ["Indoor", "Outdoor", "Both"] },
+      usage: { type: String, enum: ['Indoor', 'Outdoor', 'Both'] },
       colorOptions: [{ type: String }],
     },
-    "Textile Farming": {
+    'Textile Farming': {
       productType: {
         type: String,
-        enum: ["Cotton", "Jute", "Hemp", "Flax", "Other"],
+        enum: ['Cotton', 'Jute', 'Hemp', 'Flax', 'Other'],
       },
-      grade: { type: String, enum: ["A", "B", "C", "Premium"] },
+      grade: { type: String, enum: ['A', 'B', 'C', 'Premium'] },
       moisturePercent: { type: Number, min: 0, max: 100 },
       fibreLength: { type: Number, min: 0 },
       region: { type: String },
@@ -486,39 +486,39 @@ ProductSchema.statics.getCategoryFields = function (category) {
     Fibre: {
       fibreType: {
         type: String,
-        enum: ["Natural", "Synthetic", "Semi-Synthetic"],
+        enum: ['Natural', 'Synthetic', 'Semi-Synthetic'],
       },
       denier: { type: Number, min: 0 },
       length: { type: Number, min: 0 },
-      luster: { type: String, enum: ["Bright", "Semi-Dull", "Dull"] },
+      luster: { type: String, enum: ['Bright', 'Semi-Dull', 'Dull'] },
       packaging: { type: String },
     },
-    "Fabric (Finished)": {
+    'Fabric (Finished)': {
       fabricType: { type: String },
       pattern: { type: String },
       careInstructions: { type: String },
     },
-    "Finished Fabrics": {
+    'Finished Fabrics': {
       finishType: { type: String },
       performance: { type: String },
       pattern: { type: String },
       colorRange: [{ type: String }],
     },
-    "Trims & Accessories": {
+    'Trims & Accessories': {
       type: {
         type: String,
-        enum: ["Button", "Zipper", "Thread", "Label", "Buckle", "Other"],
+        enum: ['Button', 'Zipper', 'Thread', 'Label', 'Buckle', 'Other'],
       },
       material: { type: String },
       size: { type: String },
       usage: { type: String },
     },
-    "Dyes & Chemicals": {
+    'Dyes & Chemicals': {
       type: {
         type: String,
-        enum: ["Reactive", "Direct", "Vat", "Acid", "Basic", "Disperse"],
+        enum: ['Reactive', 'Direct', 'Vat', 'Acid', 'Basic', 'Disperse'],
       },
-      form: { type: String, enum: ["Powder", "Liquid", "Granules"] },
+      form: { type: String, enum: ['Powder', 'Liquid', 'Granules'] },
       shade: { type: String },
       concentration: { type: String },
       packaging: { type: String },
@@ -534,10 +534,10 @@ ProductSchema.methods.validateCategoryData = function () {
   const errors = [];
 
   if (this.categoryData) {
-    Object.keys(this.categoryData).forEach((field) => {
+    Object.keys(this.categoryData).forEach(field => {
       if (!allowedFields[field]) {
         errors.push(
-          `Field '${field}' is not allowed for category '${this.category}'`
+          `Field '${field}' is not allowed for category '${this.category}'`,
         );
       }
     });
@@ -546,4 +546,4 @@ ProductSchema.methods.validateCategoryData = function () {
   return errors;
 };
 
-module.exports = mongoose.model("TexxolutionProduct", ProductSchema);
+module.exports = mongoose.model('TexxolutionProduct', ProductSchema);

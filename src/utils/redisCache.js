@@ -1,4 +1,4 @@
-const { Redis } = require("@upstash/redis");
+const { Redis } = require('@upstash/redis');
 
 // Initialize Upstash Redis client
 const redis = new Redis({
@@ -13,7 +13,7 @@ const CACHE_CONFIG = {
 
 // Cache key generators
 const CACHE_KEYS = {
-  PRODUCT_BY_UNIQUE_ID: (uniqueId) => `product:unique:${uniqueId}`,
+  PRODUCT_BY_UNIQUE_ID: uniqueId => `product:unique:${uniqueId}`,
 };
 
 class ProductCache {
@@ -26,21 +26,7 @@ class ProductCache {
       const cached = await redis.get(cacheKey);
       return cached ? JSON.parse(cached) : null;
     } catch (error) {
-      console.error("Redis get product by unique ID error:", error);
-      return null;
-    }
-  }
-
-  /**
-   * Get cached product detail by unique ID
-   */
-  static async getProductByUniqueId(uniqueId) {
-    try {
-      const cacheKey = CACHE_KEYS.PRODUCT_BY_UNIQUE_ID(uniqueId);
-      const cached = await redis.get(cacheKey);
-      return cached ? JSON.parse(cached) : null;
-    } catch (error) {
-      console.error("Redis get product by unique ID error:", error);
+      console.error('Redis get product by unique ID error:', error);
       return null;
     }
   }
@@ -51,7 +37,7 @@ class ProductCache {
   static async setProductDetail(product) {
     try {
       if (!product.uniqueId) {
-        console.warn("Product does not have uniqueId, skipping cache");
+        console.warn('Product does not have uniqueId, skipping cache');
         return;
       }
 
@@ -64,7 +50,7 @@ class ProductCache {
       const uniqueKey = CACHE_KEYS.PRODUCT_BY_UNIQUE_ID(product.uniqueId);
       await redis.setex(uniqueKey, CACHE_CONFIG.PRODUCT_DETAIL_TTL, jsonData);
     } catch (error) {
-      console.error("Redis set product detail error:", error);
+      console.error('Redis set product detail error:', error);
     }
   }
 
@@ -78,7 +64,7 @@ class ProductCache {
         await redis.del(cacheKey);
       }
     } catch (error) {
-      console.error("Redis invalidate product cache error:", error);
+      console.error('Redis invalidate product cache error:', error);
     }
   }
 }

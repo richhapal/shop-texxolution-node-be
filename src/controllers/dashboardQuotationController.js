@@ -1,7 +1,8 @@
-const Quotation = require("../models/Quotation");
-const Enquiry = require("../models/Enquiry");
-const Product = require("../models/Product");
-const { uploadFileFromPath, validateFile } = require("../utils/cloudflareR2");
+/* eslint-disable consistent-return */
+const Quotation = require('../models/Quotation');
+const Enquiry = require('../models/Enquiry');
+const Product = require('../models/Product');
+const { uploadFileFromPath, validateFile } = require('../utils/cloudflareR2');
 
 /**
  * Get all quotations for dashboard with filtering and pagination
@@ -11,7 +12,7 @@ const getDashboardQuotations = async (req, res) => {
     const {
       page = 1,
       limit = 20,
-      sort = "-createdAt",
+      sort = '-createdAt',
       status,
       createdBy,
       search,
@@ -39,25 +40,25 @@ const getDashboardQuotations = async (req, res) => {
       const expiryDate = new Date();
       expiryDate.setDate(expiryDate.getDate() + days);
       filter.validUntil = { $lte: expiryDate, $gte: new Date() };
-      filter.status = "sent";
+      filter.status = 'sent';
     }
 
     // Search filter
     if (search) {
       filter.$or = [
-        { quotationNo: { $regex: search, $options: "i" } },
-        { customerName: { $regex: search, $options: "i" } },
-        { company: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
+        { quotationNo: { $regex: search, $options: 'i' } },
+        { customerName: { $regex: search, $options: 'i' } },
+        { company: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
       ];
     }
 
     // Build sort object
-    let sortObj = {};
+    const sortObj = {};
     if (sort) {
-      const sortFields = sort.split(",");
-      sortFields.forEach((field) => {
-        if (field.startsWith("-")) {
+      const sortFields = sort.split(',');
+      sortFields.forEach(field => {
+        if (field.startsWith('-')) {
           sortObj[field.slice(1)] = -1;
         } else {
           sortObj[field] = 1;
@@ -72,9 +73,9 @@ const getDashboardQuotations = async (req, res) => {
     // Execute query
     const [quotations, total] = await Promise.all([
       Quotation.find(filter)
-        .populate("enquiryId", "enquiryNo customerName")
-        .populate("createdBy", "name email")
-        .populate("products.productId", "name sku category")
+        .populate('enquiryId', 'enquiryNo customerName')
+        .populate('createdBy', 'name email')
+        .populate('products.productId', 'name sku category')
         .sort(sortObj)
         .skip(skip)
         .limit(limitNumber)
@@ -85,7 +86,7 @@ const getDashboardQuotations = async (req, res) => {
     const totalPages = Math.ceil(total / limitNumber);
 
     // Add calculated fields
-    const quotationsWithCalcs = quotations.map((quotation) => ({
+    const quotationsWithCalcs = quotations.map(quotation => ({
       ...quotation,
       subtotal: quotation.products.reduce((sum, product) => {
         const discountedPrice =
@@ -95,12 +96,12 @@ const getDashboardQuotations = async (req, res) => {
       isExpired:
         quotation.validUntil &&
         new Date() > quotation.validUntil &&
-        quotation.status === "sent",
+        quotation.status === 'sent',
     }));
 
     res.json({
       success: true,
-      message: "Quotations retrieved successfully.",
+      message: 'Quotations retrieved successfully.',
       data: {
         quotations: quotationsWithCalcs,
         pagination: {
@@ -114,10 +115,10 @@ const getDashboardQuotations = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Get dashboard quotations error:", error);
+    console.error('Get dashboard quotations error:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error while retrieving quotations.",
+      message: 'Internal server error while retrieving quotations.',
     });
   }
 };
@@ -132,11 +133,11 @@ const createQuotation = async (req, res) => {
       products,
       validUntil,
       terms,
-      currency = "USD",
+      currency = 'USD',
       taxRate = 0,
       shippingCost = 0,
       shippingMethod,
-      paymentTerms = "30_days",
+      paymentTerms = '30_days',
       customPaymentTerms,
     } = req.body;
 
@@ -149,14 +150,14 @@ const createQuotation = async (req, res) => {
     ) {
       return res.status(400).json({
         success: false,
-        message: "Enquiry ID and products array are required.",
+        message: 'Enquiry ID and products array are required.',
       });
     }
 
     if (!validUntil || !terms) {
       return res.status(400).json({
         success: false,
-        message: "Valid until date and terms are required.",
+        message: 'Valid until date and terms are required.',
       });
     }
 
@@ -165,7 +166,7 @@ const createQuotation = async (req, res) => {
     if (!enquiry) {
       return res.status(404).json({
         success: false,
-        message: "Enquiry not found.",
+        message: 'Enquiry not found.',
       });
     }
 
@@ -204,7 +205,7 @@ const createQuotation = async (req, res) => {
         unitPrice: parseFloat(product.unitPrice),
         deliveryTime: product.deliveryTime.trim(),
         discount: parseFloat(product.discount) || 0,
-        notes: product.notes || "",
+        notes: product.notes || '',
       });
     }
 
@@ -220,10 +221,10 @@ const createQuotation = async (req, res) => {
       currency,
       taxRate: parseFloat(taxRate),
       shippingCost: parseFloat(shippingCost),
-      shippingMethod: shippingMethod || "",
+      shippingMethod: shippingMethod || '',
       paymentTerms,
-      customPaymentTerms: customPaymentTerms || "",
-      status: "draft",
+      customPaymentTerms: customPaymentTerms || '',
+      status: 'draft',
       createdBy: req.user._id,
     };
 
@@ -231,33 +232,33 @@ const createQuotation = async (req, res) => {
 
     // Populate for response
     await quotation.populate([
-      { path: "enquiryId", select: "enquiryNo" },
-      { path: "createdBy", select: "name email" },
-      { path: "products.productId", select: "name sku category" },
+      { path: 'enquiryId', select: 'enquiryNo' },
+      { path: 'createdBy', select: 'name email' },
+      { path: 'products.productId', select: 'name sku category' },
     ]);
 
     res.status(201).json({
       success: true,
-      message: "Quotation created successfully.",
+      message: 'Quotation created successfully.',
       data: {
         quotation,
       },
     });
   } catch (error) {
-    console.error("Create quotation error:", error);
+    console.error('Create quotation error:', error);
 
-    if (error.name === "ValidationError") {
-      const errors = Object.values(error.errors).map((err) => err.message);
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({
         success: false,
-        message: "Validation error.",
+        message: 'Validation error.',
         errors,
       });
     }
 
     res.status(500).json({
       success: false,
-      message: "Internal server error while creating quotation.",
+      message: 'Internal server error while creating quotation.',
     });
   }
 };
@@ -283,47 +284,47 @@ const updateQuotation = async (req, res) => {
       new: true,
       runValidators: true,
     }).populate([
-      { path: "enquiryId", select: "enquiryNo" },
-      { path: "createdBy", select: "name email" },
-      { path: "products.productId", select: "name sku category" },
+      { path: 'enquiryId', select: 'enquiryNo' },
+      { path: 'createdBy', select: 'name email' },
+      { path: 'products.productId', select: 'name sku category' },
     ]);
 
     if (!quotation) {
       return res.status(404).json({
         success: false,
-        message: "Quotation not found.",
+        message: 'Quotation not found.',
       });
     }
 
     res.json({
       success: true,
-      message: "Quotation updated successfully.",
+      message: 'Quotation updated successfully.',
       data: {
         quotation,
       },
     });
   } catch (error) {
-    console.error("Update quotation error:", error);
+    console.error('Update quotation error:', error);
 
-    if (error.name === "ValidationError") {
-      const errors = Object.values(error.errors).map((err) => err.message);
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({
         success: false,
-        message: "Validation error.",
+        message: 'Validation error.',
         errors,
       });
     }
 
-    if (error.name === "CastError") {
+    if (error.name === 'CastError') {
       return res.status(400).json({
         success: false,
-        message: "Invalid quotation ID format.",
+        message: 'Invalid quotation ID format.',
       });
     }
 
     res.status(500).json({
       success: false,
-      message: "Internal server error while updating quotation.",
+      message: 'Internal server error while updating quotation.',
     });
   }
 };
@@ -338,20 +339,20 @@ const uploadQuotationPDF = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({
         success: false,
-        message: "PDF file is required.",
+        message: 'PDF file is required.',
       });
     }
 
     // Validate file
     const validation = validateFile(
       req.file,
-      ["application/pdf"],
-      10 * 1024 * 1024
+      ['application/pdf'],
+      10 * 1024 * 1024,
     );
     if (!validation.isValid) {
       return res.status(400).json({
         success: false,
-        message: "File validation failed.",
+        message: 'File validation failed.',
         errors: validation.errors,
       });
     }
@@ -361,7 +362,7 @@ const uploadQuotationPDF = async (req, res) => {
     if (!quotation) {
       return res.status(404).json({
         success: false,
-        message: "Quotation not found.",
+        message: 'Quotation not found.',
       });
     }
 
@@ -372,18 +373,18 @@ const uploadQuotationPDF = async (req, res) => {
     const uploadResult = await uploadFileFromPath(
       req.file.path,
       fileName,
-      "application/pdf",
+      'application/pdf',
       {
-        "quotation-no": quotation.quotationNo,
-        "uploaded-by": req.user._id.toString(),
-        "quotation-id": quotation._id.toString(),
-      }
+        'quotation-no': quotation.quotationNo,
+        'uploaded-by': req.user._id.toString(),
+        'quotation-id': quotation._id.toString(),
+      },
     );
 
     if (!uploadResult.success) {
       return res.status(500).json({
         success: false,
-        message: "Failed to upload PDF to R2.",
+        message: 'Failed to upload PDF to R2.',
       });
     }
 
@@ -393,7 +394,7 @@ const uploadQuotationPDF = async (req, res) => {
 
     res.json({
       success: true,
-      message: "PDF uploaded successfully to Cloudflare R2.",
+      message: 'PDF uploaded successfully to Cloudflare R2.',
       data: {
         pdfLink: quotation.pdfLink,
         quotationNo: quotation.quotationNo,
@@ -401,11 +402,11 @@ const uploadQuotationPDF = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Upload PDF error:", error);
+    console.error('Upload PDF error:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error while uploading PDF to R2.",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+      message: 'Internal server error while uploading PDF to R2.',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -418,19 +419,19 @@ const getQuotationById = async (req, res) => {
     const { id } = req.params;
 
     const quotation = await Quotation.findById(id)
-      .populate("enquiryId", "enquiryNo customerName company message")
-      .populate("createdBy", "name email department")
+      .populate('enquiryId', 'enquiryNo customerName company message')
+      .populate('createdBy', 'name email department')
       .populate(
-        "products.productId",
-        "name sku category images.main pricing.basePrice"
+        'products.productId',
+        'name sku category images.main pricing.basePrice',
       )
-      .populate("internalNotes.addedBy", "name email")
+      .populate('internalNotes.addedBy', 'name email')
       .lean();
 
     if (!quotation) {
       return res.status(404).json({
         success: false,
-        message: "Quotation not found.",
+        message: 'Quotation not found.',
       });
     }
 
@@ -446,7 +447,7 @@ const getQuotationById = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Quotation retrieved successfully.",
+      message: 'Quotation retrieved successfully.',
       data: {
         quotation: {
           ...quotation,
@@ -456,23 +457,23 @@ const getQuotationById = async (req, res) => {
           isExpired:
             quotation.validUntil &&
             new Date() > quotation.validUntil &&
-            quotation.status === "sent",
+            quotation.status === 'sent',
         },
       },
     });
   } catch (error) {
-    console.error("Get quotation by ID error:", error);
+    console.error('Get quotation by ID error:', error);
 
-    if (error.name === "CastError") {
+    if (error.name === 'CastError') {
       return res.status(400).json({
         success: false,
-        message: "Invalid quotation ID format.",
+        message: 'Invalid quotation ID format.',
       });
     }
 
     res.status(500).json({
       success: false,
-      message: "Internal server error while retrieving quotation.",
+      message: 'Internal server error while retrieving quotation.',
     });
   }
 };
@@ -489,14 +490,14 @@ const sendQuotation = async (req, res) => {
     if (!quotation) {
       return res.status(404).json({
         success: false,
-        message: "Quotation not found.",
+        message: 'Quotation not found.',
       });
     }
 
-    if (quotation.status !== "draft") {
+    if (quotation.status !== 'draft') {
       return res.status(400).json({
         success: false,
-        message: "Only draft quotations can be sent.",
+        message: 'Only draft quotations can be sent.',
       });
     }
 
@@ -508,7 +509,7 @@ const sendQuotation = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Quotation sent successfully.",
+      message: 'Quotation sent successfully.',
       data: {
         quotation: {
           _id: quotation._id,
@@ -519,10 +520,10 @@ const sendQuotation = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Send quotation error:", error);
+    console.error('Send quotation error:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error while sending quotation.",
+      message: 'Internal server error while sending quotation.',
     });
   }
 };
@@ -542,25 +543,25 @@ const getQuotationStats = async (req, res) => {
       conversionRate,
     ] = await Promise.all([
       Quotation.countDocuments(),
-      Quotation.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
+      Quotation.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
       Quotation.countDocuments({
         validUntil: { $lt: new Date() },
-        status: "sent",
+        status: 'sent',
       }),
-      Quotation.countDocuments({ status: "sent" }),
-      Quotation.countDocuments({ status: "accepted" }),
+      Quotation.countDocuments({ status: 'sent' }),
+      Quotation.countDocuments({ status: 'accepted' }),
       Quotation.find()
         .sort({ createdAt: -1 })
         .limit(10)
-        .select("quotationNo customerName company status validUntil createdAt")
-        .populate("createdBy", "name"),
+        .select('quotationNo customerName company status validUntil createdAt')
+        .populate('createdBy', 'name'),
       Quotation.aggregate([
         {
           $group: {
             _id: null,
             total: { $sum: 1 },
             accepted: {
-              $sum: { $cond: [{ $eq: ["$status", "accepted"] }, 1, 0] },
+              $sum: { $cond: [{ $eq: ['$status', 'accepted'] }, 1, 0] },
             },
           },
         },
@@ -569,9 +570,9 @@ const getQuotationStats = async (req, res) => {
             _id: 0,
             conversionRate: {
               $cond: [
-                { $eq: ["$total", 0] },
+                { $eq: ['$total', 0] },
                 0,
-                { $multiply: [{ $divide: ["$accepted", "$total"] }, 100] },
+                { $multiply: [{ $divide: ['$accepted', '$total'] }, 100] },
               ],
             },
           },
@@ -581,7 +582,7 @@ const getQuotationStats = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Quotation statistics retrieved successfully.",
+      message: 'Quotation statistics retrieved successfully.',
       data: {
         total: totalQuotations,
         byStatus: quotationsByStatus,
@@ -593,10 +594,10 @@ const getQuotationStats = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Get quotation stats error:", error);
+    console.error('Get quotation stats error:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error while retrieving statistics.",
+      message: 'Internal server error while retrieving statistics.',
     });
   }
 };

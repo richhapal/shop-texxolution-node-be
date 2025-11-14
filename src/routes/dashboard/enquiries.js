@@ -1,5 +1,13 @@
-const express = require("express");
-const { restrictTo } = require("../../middleware/auth");
+/**
+ * 📧 Customer Enquiry Management Routes
+ * Dashboard interface for handling customer product inquiries and lead management.
+ * Features: status tracking, priority assignment, bulk operations, statistics.
+ * Routes: GET /enquiries, GET /:id, PATCH /:id, GET /stats, PATCH /bulk
+ * Auto-generates enquiry numbers (ENQ-YYYY-XXX format)
+ */
+
+const express = require('express');
+const { restrictTo } = require('../../middleware/auth');
 const {
   getDashboardEnquiries,
   getEnquiryById,
@@ -7,7 +15,7 @@ const {
   addCommunication,
   bulkUpdateEnquiries,
   getEnquiryStats,
-} = require("../../controllers/dashboardEnquiryController");
+} = require('../../controllers/dashboardEnquiryController');
 
 const router = express.Router();
 
@@ -19,21 +27,21 @@ const router = express.Router();
  * Access: All authenticated users
  * Query params: page, limit, sort, status, assignedTo, priority, source, search, dateFrom, dateTo
  */
-router.get("/", getDashboardEnquiries);
+router.get('/', getDashboardEnquiries);
 
 /**
  * GET /api/dashboard/enquiries/stats
  * Get enquiry statistics for dashboard
  * Access: All authenticated users
  */
-router.get("/stats", getEnquiryStats);
+router.get('/stats', getEnquiryStats);
 
 /**
  * GET /api/dashboard/enquiries/:id
  * Get single enquiry details
  * Access: All authenticated users
  */
-router.get("/:id", getEnquiryById);
+router.get('/:id', getEnquiryById);
 
 /**
  * PATCH /api/dashboard/enquiries/:id
@@ -41,7 +49,7 @@ router.get("/:id", getEnquiryById);
  * Access: Admin, Editor
  * Body: { status?, assignedTo?, priority?, followUpDate?, internalNote? }
  */
-router.patch("/:id", restrictTo("admin", "editor"), updateEnquiry);
+router.patch('/:id', restrictTo('admin', 'editor'), updateEnquiry);
 
 /**
  * POST /api/dashboard/enquiries/:id/communication
@@ -50,9 +58,9 @@ router.patch("/:id", restrictTo("admin", "editor"), updateEnquiry);
  * Body: { type: 'email'|'phone'|'meeting'|'other', subject: string, content: string, direction: 'inbound'|'outbound' }
  */
 router.post(
-  "/:id/communication",
-  restrictTo("admin", "editor"),
-  addCommunication
+  '/:id/communication',
+  restrictTo('admin', 'editor'),
+  addCommunication,
 );
 
 // ==================== BULK OPERATIONS ====================
@@ -63,6 +71,6 @@ router.post(
  * Access: Admin, Editor
  * Body: { enquiryIds: string[], updateData: object }
  */
-router.patch("/bulk", restrictTo("admin", "editor"), bulkUpdateEnquiries);
+router.patch('/bulk', restrictTo('admin', 'editor'), bulkUpdateEnquiries);
 
 module.exports = router;
