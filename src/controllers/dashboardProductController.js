@@ -271,21 +271,39 @@ const createProductWithImages = async (req, res) => {
       });
     }
 
+    // Generate unique ID (manual generation to ensure it's set)
+    const generateUniqueId = (name, category) => {
+      const cleanName = name
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '')
+        .substring(0, 8);
+
+      const categoryShort = category.toLowerCase().substring(0, 3);
+      const timestamp = Date.now().toString().slice(-6);
+      return `${cleanName}-${categoryShort}-${timestamp}`;
+    };
+
     // Prepare base product data
     const newProductData = {
       sku: sku.trim(),
+      uniqueId: generateUniqueId(name, category),
       name: name.trim(),
       category,
       description: description.trim(),
-      images: { main: '', gallery: [] },
-      composition: composition || '',
-      color: color || '',
-      width: width || '',
+      images: {
+        main: `https://via.placeholder.com/400x300?text=${encodeURIComponent(name)}`,
+        gallery: [],
+      },
+      composition: composition.trim(),
+      color: color.trim(),
+      width: width.trim(),
       gsm: gsm || 0,
-      finish: finish || '',
-      application: application || '',
+      finish: finish.trim(),
+      application: application.trim(),
       moq: moq || 1,
-      leadTime: leadTime || '',
+      leadTime: leadTime.trim(),
       tags: tags || [],
       specSheet: '',
       status,
