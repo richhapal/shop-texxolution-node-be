@@ -476,6 +476,105 @@ const assignRole = async (req, res) => {
   }
 };
 
+/**
+ * Admin change user password (Admin only)
+ */
+const adminChangePassword = async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+
+    // Validation
+    if (!email || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and new password are required.',
+      });
+    }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email address.',
+      });
+    }
+
+    // Password strength validation
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          'Password must be at least 8 characters and contain uppercase, lowercase, number, and special character.',
+      });
+    }
+
+    // Find user by email
+    const user = await User.findByEmail(email);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found with the provided email.',
+      });
+    }
+
+    // Prevent admin from changing their own password through this endpoint
+    if (user._id.toString() === req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message:
+          'Use the regular change-password endpoint to change your own password.',
+      });
+    }
+
+    // Only allow changing password for editor and viewer roles (not other admins)
+    if (user.role === 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Cannot change password for other admin users.',
+      });
+    }
+
+    // Update user password
+    await user.setPassword(newPassword);
+    user.updatedBy = req.user._id;
+    await user.save();
+
+    // Reset login attempts if any
+    await user.resetLoginAttempts();
+
+    res.json({
+      success: true,
+      message: `Password updated successfully for user: ${user.email}`,
+      data: {
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          status: user.status,
+        },
+        updatedBy: {
+          _id: req.user._id,
+          name: req.user.name,
+          email: req.user.email,
+        },
+        passwordChanged: true,
+      },
+    });
+  } catch (error) {
+    console.error('Admin password change error:', error);
+
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error during password change.',
+    });
+  }
+};
+
 module.exports = {
   signup,
   login,
@@ -485,4 +584,5 @@ module.exports = {
   changePassword,
   logout,
   assignRole,
+  adminChangePassword,
 };

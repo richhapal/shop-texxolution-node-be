@@ -444,6 +444,99 @@ Content-Type: application/json
 }
 ```
 
+### 5. Admin Change User Password (Admin Only)
+
+```http
+PUT /api/dashboard/auth/admin/change-password
+Authorization: Bearer <jwt-token>
+Content-Type: application/json
+```
+
+**Access:** Admin users only
+
+**Request Body:**
+
+```json
+{
+  "email": "user@example.com",
+  "newPassword": "NewSecurePass123!"
+}
+```
+
+**Password Requirements:**
+
+- Minimum 8 characters
+- At least one uppercase letter
+- At least one lowercase letter
+- At least one number
+- At least one special character (@$!%\*?&)
+
+**Success Response (200):**
+
+```json
+{
+  "success": true,
+  "message": "Password updated successfully for user: user@example.com",
+  "data": {
+    "user": {
+      "_id": "674b123456789abc12345678",
+      "name": "John Doe",
+      "email": "user@example.com",
+      "role": "editor",
+      "status": "active"
+    },
+    "updatedBy": {
+      "_id": "674b987654321abc87654321",
+      "name": "Admin User",
+      "email": "admin@example.com"
+    },
+    "passwordChanged": true
+  }
+}
+```
+
+**Restrictions:**
+
+- Admin cannot change their own password through this endpoint
+- Admin cannot change passwords of other admin users
+- Only works for `editor` and `viewer` role users
+
+**Error Response (404) - User Not Found:**
+
+```json
+{
+  "success": false,
+  "message": "User not found with the provided email."
+}
+```
+
+**Error Response (403) - Cannot Change Own Password:**
+
+```json
+{
+  "success": false,
+  "message": "Use the regular change-password endpoint to change your own password."
+}
+```
+
+**Error Response (403) - Cannot Change Admin Password:**
+
+```json
+{
+  "success": false,
+  "message": "Cannot change password for other admin users."
+}
+```
+
+**Error Response (400) - Invalid Password:**
+
+```json
+{
+  "success": false,
+  "message": "Password must be at least 8 characters and contain uppercase, lowercase, number, and special character."
+}
+```
+
 ---
 
 ## 📦 Product Management Endpoints

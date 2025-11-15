@@ -10,7 +10,7 @@ const {
   requireAuth,
   requireAdmin,
   validateRefreshToken,
-  authRateLimit,
+  // authRateLimit, // Commented out - not using rate limiting
 } = require('../../middleware/auth');
 const {
   signup,
@@ -21,12 +21,13 @@ const {
   changePassword,
   logout,
   assignRole,
+  adminChangePassword,
 } = require('../../controllers/authController');
 
 const router = express.Router();
 
 // Apply rate limiting to authentication routes
-router.use(authRateLimit(5, 15 * 60 * 1000)); // 5 attempts per 15 minutes
+// router.use(authRateLimit(5, 15 * 60 * 1000)); // 5 attempts per 15 minutes - Commented out
 
 // Public routes (no authentication required)
 router.post('/signup', signup);
@@ -43,5 +44,6 @@ router.post('/logout', logout);
 
 // Admin-only routes
 router.put('/assign-role', requireAdmin, assignRole);
+router.put('/admin/change-password', requireAdmin, adminChangePassword);
 
 module.exports = router;
