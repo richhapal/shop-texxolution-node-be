@@ -64,11 +64,11 @@ const getDashboardProducts = async (req, res) => {
     const limitNumber = parseInt(limit);
     const skip = (pageNumber - 1) * limitNumber;
 
-    // Execute query
+    // Execute query (populate commented out due to User model registration issue)
     const [products, total] = await Promise.all([
       Product.find(filter)
-        .populate('createdBy', 'name email')
-        .populate('updatedBy', 'name email')
+        // .populate('createdBy', 'name email')
+        // .populate('updatedBy', 'name email')
         .sort(sortObj)
         .skip(skip)
         .limit(limitNumber)
@@ -181,8 +181,8 @@ const createProduct = async (req, res) => {
     // Create product
     const product = await Product.create(productData);
 
-    // Populate creator info for response
-    await product.populate('createdBy', 'name email');
+    // Populate creator info for response (commented out due to User model registration issue)
+    // await product.populate('createdBy', 'name email');
 
     res.status(201).json({
       success: true,
@@ -437,8 +437,8 @@ const createProductWithImages = async (req, res) => {
       // Files that failed to upload will just be empty in the product
     }
 
-    // Populate creator info for response
-    await product.populate('createdBy', 'name email');
+    // Populate creator info for response (commented out due to User model registration issue)
+    // await product.populate('createdBy', 'name email');
 
     res.status(201).json({
       success: true,
