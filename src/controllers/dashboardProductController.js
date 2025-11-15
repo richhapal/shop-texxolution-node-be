@@ -508,7 +508,7 @@ const updateProduct = async (req, res) => {
       new: true,
       runValidators: true,
       context: 'query',
-    }).populate('createdBy updatedBy', 'name email');
+    }); // .populate('createdBy updatedBy', 'name email'); // Commented out due to User model registration issue
 
     if (!product) {
       return res.status(404).json({
@@ -561,7 +561,7 @@ const getProductById = async (req, res) => {
     const { id } = req.params;
 
     const product = await Product.findById(id)
-      .populate('createdBy updatedBy', 'name email')
+      // .populate('createdBy updatedBy', 'name email') // Commented out due to User model registration issue
       .lean();
 
     if (!product) {
@@ -719,8 +719,8 @@ const getProductStats = async (req, res) => {
       Product.find()
         .sort({ createdAt: -1 })
         .limit(10)
-        .select('name sku status createdAt')
-        .populate('createdBy', 'name'),
+        .select('name sku status createdAt'),
+      // .populate('createdBy', 'name'), // Commented out due to User model registration issue
     ]);
 
     const statsData = {

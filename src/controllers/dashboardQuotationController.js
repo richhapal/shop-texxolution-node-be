@@ -74,7 +74,7 @@ const getDashboardQuotations = async (req, res) => {
     const [quotations, total] = await Promise.all([
       Quotation.find(filter)
         .populate('enquiryId', 'enquiryNo customerName')
-        .populate('createdBy', 'name email')
+        // .populate('createdBy', 'name email') // Commented out due to User model registration issue
         .populate('products.productId', 'name sku category')
         .sort(sortObj)
         .skip(skip)
@@ -420,12 +420,12 @@ const getQuotationById = async (req, res) => {
 
     const quotation = await Quotation.findById(id)
       .populate('enquiryId', 'enquiryNo customerName company message')
-      .populate('createdBy', 'name email department')
+      // .populate('createdBy', 'name email department') // Commented out due to User model registration issue
       .populate(
         'products.productId',
         'name sku category images.main pricing.basePrice',
       )
-      .populate('internalNotes.addedBy', 'name email')
+      // .populate('internalNotes.addedBy', 'name email') // Commented out due to User model registration issue
       .lean();
 
     if (!quotation) {
@@ -553,8 +553,8 @@ const getQuotationStats = async (req, res) => {
       Quotation.find()
         .sort({ createdAt: -1 })
         .limit(10)
-        .select('quotationNo customerName company status validUntil createdAt')
-        .populate('createdBy', 'name'),
+        .select('quotationNo customerName company status validUntil createdAt'),
+      // .populate('createdBy', 'name'), // Commented out due to User model registration issue
       Quotation.aggregate([
         {
           $group: {
