@@ -755,7 +755,7 @@ const updateProduct = async (req, res) => {
 };
 
 /**
- * Update product with FormData (handles both text fields and file uploads)
+ * Update product with FormData using productData key (handles both text fields and file uploads)
  */
 const updateProductWithImages = async (req, res) => {
   try {
@@ -770,48 +770,15 @@ const updateProductWithImages = async (req, res) => {
       });
     }
 
-    // Parse FormData - all fields are sent directly in FormData
-    const updateData = { ...req.body };
-
-    // Handle JSON parsing for complex fields from FormData
-    if (typeof updateData.categoryData === 'string') {
-      try {
-        updateData.categoryData = JSON.parse(updateData.categoryData);
-      } catch (e) {
-        updateData.categoryData = existingProduct.categoryData || {};
-      }
-    }
-
-    if (typeof updateData.pricing === 'string') {
-      try {
-        updateData.pricing = JSON.parse(updateData.pricing);
-      } catch (e) {
-        updateData.pricing = existingProduct.pricing;
-      }
-    }
-
-    if (typeof updateData.seo === 'string') {
-      try {
-        updateData.seo = JSON.parse(updateData.seo);
-      } catch (e) {
-        updateData.seo = existingProduct.seo;
-      }
-    }
-
-    if (typeof updateData.vendor === 'string') {
-      try {
-        updateData.vendor = JSON.parse(updateData.vendor);
-      } catch (e) {
-        updateData.vendor = existingProduct.vendor;
-      }
-    }
-
-    if (typeof updateData.tags === 'string') {
-      try {
-        updateData.tags = JSON.parse(updateData.tags);
-      } catch (e) {
-        updateData.tags = existingProduct.tags || [];
-      }
+    // Parse JSON data from productData field in FormData (like createProductWithImages)
+    let updateData;
+    try {
+      updateData = JSON.parse(req.body.productData);
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid product data JSON format.',
+      });
     }
 
     // Remove fields that shouldn't be updated directly
