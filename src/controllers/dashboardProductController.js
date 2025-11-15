@@ -494,12 +494,64 @@ const createProductWithImages = async (req, res) => {
 };
 
 /**
- * Update product with Lovable form fields
+ * Update product with FormData (supports both text fields and file uploads)
  */
 const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Find existing product first
+    const existingProduct = await Product.findById(id);
+    if (!existingProduct) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found.',
+      });
+    }
+
+    // Parse FormData - all fields are sent directly in FormData
     const updateData = { ...req.body };
+
+    // Handle JSON parsing for complex fields from FormData
+    if (typeof updateData.categoryData === 'string') {
+      try {
+        updateData.categoryData = JSON.parse(updateData.categoryData);
+      } catch (e) {
+        updateData.categoryData = existingProduct.categoryData || {};
+      }
+    }
+
+    if (typeof updateData.pricing === 'string') {
+      try {
+        updateData.pricing = JSON.parse(updateData.pricing);
+      } catch (e) {
+        updateData.pricing = existingProduct.pricing;
+      }
+    }
+
+    if (typeof updateData.seo === 'string') {
+      try {
+        updateData.seo = JSON.parse(updateData.seo);
+      } catch (e) {
+        updateData.seo = existingProduct.seo;
+      }
+    }
+
+    if (typeof updateData.vendor === 'string') {
+      try {
+        updateData.vendor = JSON.parse(updateData.vendor);
+      } catch (e) {
+        updateData.vendor = existingProduct.vendor;
+      }
+    }
+
+    if (typeof updateData.tags === 'string') {
+      try {
+        updateData.tags = JSON.parse(updateData.tags);
+      } catch (e) {
+        updateData.tags = existingProduct.tags || [];
+      }
+    }
 
     // Remove fields that shouldn't be updated directly
     delete updateData._id;
@@ -509,13 +561,137 @@ const updateProduct = async (req, res) => {
     // Add updatedBy
     updateData.updatedBy = req.user._id;
 
+    // Handle image uploads if present
+    const imageUpdates = {};
+    const oldImages = [];
+
+    // Handle main image update
+    if (req.files && req.files.mainImage && req.files.mainImage[0]) {
+      try {
+        const mainImageFile = req.files.mainImage[0];
+
+        // Validate main image file
+        const validation = validateFile(
+          mainImageFile,
+          ['image/jpeg', 'image/png', 'image/webp'],
+          5 * 1024 * 1024,
+        );
+
+        if (validation.isValid) {
+          const folderPath = `products/${existingProduct.sku}/images`;
+          const fileName = `${folderPath}/main_${Date.now()}.${mainImageFile.originalname
+            .split('.')
+            .pop()}`;
+
+          const uploadResult = await uploadFileFromPath(
+            mainImageFile.path,
+            fileName,
+            mainImageFile.mimetype,
+            {
+              'product-id': existingProduct._id.toString(),
+              'product-sku': existingProduct.sku,
+              'uploaded-by': req.user._id.toString(),
+              'image-type': 'main',
+            },
+          );
+
+          if (uploadResult.success) {
+            imageUpdates.main = uploadResult.publicUrl;
+
+            // Mark old main image for deletion
+            if (
+              existingProduct.images.main &&
+              !existingProduct.images.main.includes('placeholder')
+            ) {
+              oldImages.push(existingProduct.images.main);
+            }
+          }
+        } else {
+          return res.status(400).json({
+            success: false,
+            message: `Main image validation failed: ${validation.error}`,
+          });
+        }
+      } catch (uploadError) {
+        console.error('Main image upload failed:', uploadError);
+        return res.status(400).json({
+          success: false,
+          message: 'Failed to upload main image.',
+        });
+      }
+    }
+
+    // Handle gallery images update
+    if (req.files && req.files.galleryImages) {
+      try {
+        const folderPath = `products/${existingProduct.sku}/images`;
+        const metadata = {
+          'product-id': existingProduct._id.toString(),
+          'product-sku': existingProduct.sku,
+          'uploaded-by': req.user._id.toString(),
+          'image-type': 'gallery',
+        };
+
+        // Filter and validate gallery images
+        const validGalleryImages = req.files.galleryImages.filter(file => {
+          const validation = validateFile(
+            file,
+            ['image/jpeg', 'image/png', 'image/webp'],
+            5 * 1024 * 1024,
+          );
+          return validation.isValid;
+        });
+
+        if (validGalleryImages.length > 0) {
+          const uploadResults = await uploadMultipleImages(
+            validGalleryImages,
+            folderPath,
+            metadata,
+          );
+          imageUpdates.gallery = uploadResults.map(result => result.publicUrl);
+
+          // Mark old gallery images for deletion
+          if (
+            existingProduct.images.gallery &&
+            existingProduct.images.gallery.length > 0
+          ) {
+            oldImages.push(
+              ...existingProduct.images.gallery.filter(
+                img => !img.includes('placeholder'),
+              ),
+            );
+          }
+        } else if (req.files.galleryImages.length > 0) {
+          return res.status(400).json({
+            success: false,
+            message:
+              'All gallery images failed validation. Please check file types and sizes.',
+          });
+        }
+      } catch (uploadError) {
+        console.error('Gallery images upload failed:', uploadError);
+        return res.status(400).json({
+          success: false,
+          message: 'Failed to upload gallery images.',
+        });
+      }
+    }
+
+    // Update images in updateData if any were uploaded
+    if (Object.keys(imageUpdates).length > 0) {
+      updateData.images = {
+        ...existingProduct.images,
+        ...imageUpdates,
+      };
+    }
+
     // Check if SKU is being changed and validate uniqueness
-    if (updateData.sku) {
-      const existingProduct = await Product.findOne({
+    if (updateData.sku && updateData.sku !== existingProduct.sku) {
+      const existingSkuProduct = await Product.findOne({
         sku: updateData.sku,
         _id: { $ne: id },
       });
-      if (existingProduct) {
+      if (existingSkuProduct) {
         return res.status(400).json({
           success: false,
           message: 'A product with this SKU already exists.',
@@ -534,6 +710,12 @@ const updateProduct = async (req, res) => {
         success: false,
         message: 'Product not found.',
       });
+    }
+
+    // Clean up old images from storage (async, don't wait)
+    if (oldImages.length > 0) {
+      // Note: You would implement deleteImages function in cloudflareR2.js
+      // deleteImages(oldImages).catch(err => console.error('Image cleanup failed:', err));
     }
 
     // Invalidate product caches
@@ -573,7 +755,7 @@ const updateProduct = async (req, res) => {
 };
 
 /**
- * Update product with images using FormData
+ * Update product with FormData (handles both text fields and file uploads)
  */
 const updateProductWithImages = async (req, res) => {
   try {
@@ -588,25 +770,57 @@ const updateProductWithImages = async (req, res) => {
       });
     }
 
+    // Parse FormData - all fields are sent directly in FormData
     const updateData = { ...req.body };
+
+    // Handle JSON parsing for complex fields from FormData
+    if (typeof updateData.categoryData === 'string') {
+      try {
+        updateData.categoryData = JSON.parse(updateData.categoryData);
+      } catch (e) {
+        updateData.categoryData = existingProduct.categoryData || {};
+      }
+    }
+
+    if (typeof updateData.pricing === 'string') {
+      try {
+        updateData.pricing = JSON.parse(updateData.pricing);
+      } catch (e) {
+        updateData.pricing = existingProduct.pricing;
+      }
+    }
+
+    if (typeof updateData.seo === 'string') {
+      try {
+        updateData.seo = JSON.parse(updateData.seo);
+      } catch (e) {
+        updateData.seo = existingProduct.seo;
+      }
+    }
+
+    if (typeof updateData.vendor === 'string') {
+      try {
+        updateData.vendor = JSON.parse(updateData.vendor);
+      } catch (e) {
+        updateData.vendor = existingProduct.vendor;
+      }
+    }
+
+    if (typeof updateData.tags === 'string') {
+      try {
+        updateData.tags = JSON.parse(updateData.tags);
+      } catch (e) {
+        updateData.tags = existingProduct.tags || [];
+      }
+    }
 
     // Remove fields that shouldn't be updated directly
     delete updateData._id;
     delete updateData.createdBy;
     delete updateData.createdAt;
-    delete updateData.sku; // SKU cannot be changed here
 
     // Add updatedBy
     updateData.updatedBy = req.user._id;
-
-    // Handle JSON parsing for complex fields
-    if (typeof updateData.categoryData === 'string') {
-      try {
-        updateData.categoryData = JSON.parse(updateData.categoryData);
-      } catch (e) {
-        updateData.categoryData = {};
-      }
-    }
 
     // Check if SKU is being changed and validate uniqueness
     if (updateData.sku && updateData.sku !== existingProduct.sku) {
