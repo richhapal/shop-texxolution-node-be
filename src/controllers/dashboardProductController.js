@@ -650,13 +650,13 @@ const updateProductWithImages = async (req, res) => {
       }
     }
 
-    // Handle additional images update
-    if (req.files && req.files.additionalImages) {
+    // Handle gallery images update
+    if (req.files && req.files.galleryImages) {
       try {
-        const additionalImageUrls = await uploadMultipleImages(
-          req.files.additionalImages.map(file => file.path),
+        const galleryImageUrls = await uploadMultipleImages(
+          req.files.galleryImages.map(file => file.path),
         );
-        imageUpdates.gallery = additionalImageUrls;
+        imageUpdates.gallery = galleryImageUrls;
 
         // Mark old gallery images for deletion
         if (
