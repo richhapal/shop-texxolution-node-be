@@ -116,27 +116,29 @@ router.get('/:id', getProductById);
 
 /**
  * PUT /api/dashboard/products/:id/images
- * Update existing product with new images using FormData
+ * Update existing product with productData JSON and images using FormData
  * Access: Admin, Editor
- * Body: FormData with product fields and image files
+ * Body: FormData with productData JSON field and image files
  */
 router.put(
   '/:id/images',
   restrictTo('admin', 'editor'),
-  upload.fields([
-    { name: 'mainImage', maxCount: 1 },
-    { name: 'additionalImages', maxCount: 10 },
-  ]),
+  upload.any(), // Allow any fields (both files and text)
   updateProductWithImages,
 );
 
 /**
  * PUT /api/dashboard/products/:id
- * Update existing product with Lovable form fields (JSON only, no images)
+ * Update existing product with FormData (supports both text and images)
  * Access: Admin, Editor
- * Body: Updated product fields including categoryData
+ * Body: FormData with individual fields and optional image files
  */
-router.put('/:id', restrictTo('admin', 'editor'), updateProduct);
+router.put(
+  '/:id',
+  restrictTo('admin', 'editor'),
+  upload.any(), // Allow any fields (both files and text)
+  updateProduct,
+);
 
 /**
  * DELETE /api/dashboard/products/:id
