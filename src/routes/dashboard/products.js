@@ -16,6 +16,7 @@ const {
   createProduct,
   createProductWithImages,
   updateProduct,
+  updateProductWithImages,
   getProductById,
   deleteProduct,
   bulkUpdateProducts,
@@ -114,8 +115,24 @@ router.get('/stats', getProductStats);
 router.get('/:id', getProductById);
 
 /**
+ * PUT /api/dashboard/products/:id/images
+ * Update existing product with new images using FormData
+ * Access: Admin, Editor
+ * Body: FormData with product fields and image files
+ */
+router.put(
+  '/:id/images',
+  restrictTo('admin', 'editor'),
+  upload.fields([
+    { name: 'mainImage', maxCount: 1 },
+    { name: 'additionalImages', maxCount: 10 },
+  ]),
+  updateProductWithImages,
+);
+
+/**
  * PUT /api/dashboard/products/:id
- * Update existing product with Lovable form fields
+ * Update existing product with Lovable form fields (JSON only, no images)
  * Access: Admin, Editor
  * Body: Updated product fields including categoryData
  */

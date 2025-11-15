@@ -152,13 +152,32 @@ const createProduct = async (req, res) => {
       });
     }
 
+    // Generate uniqueId
+    const generateUniqueId = (name, category) => {
+      const cleanName = name
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, '')
+        .replace(/\s+/g, '-')
+        .trim();
+      const categoryShort = category
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '')
+        .substring(0, 8);
+      const timestamp = Date.now().toString().slice(-6);
+      return `${cleanName}-${categoryShort}-${timestamp}`;
+    };
+
     // Prepare product data
     const productData = {
       sku: sku.trim(),
+      uniqueId: generateUniqueId(name, category),
       name: name.trim(),
       category,
       description: description.trim(),
-      images: images || { main: '', gallery: [] },
+      images: images || {
+        main: `https://via.placeholder.com/400x300?text=${encodeURIComponent(name)}`,
+        gallery: [],
+      },
       composition: composition || '',
       color: color || '',
       width: width || '',
@@ -554,6 +573,167 @@ const updateProduct = async (req, res) => {
 };
 
 /**
+ * Update product with images using FormData
+ */
+const updateProductWithImages = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find existing product first
+    const existingProduct = await Product.findById(id);
+    if (!existingProduct) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found.',
+      });
+    }
+
+    const updateData = { ...req.body };
+
+    // Remove fields that shouldn't be updated directly
+    delete updateData._id;
+    delete updateData.createdBy;
+    delete updateData.createdAt;
+    delete updateData.sku; // SKU cannot be changed here
+
+    // Add updatedBy
+    updateData.updatedBy = req.user._id;
+
+    // Handle JSON parsing for complex fields
+    if (typeof updateData.categoryData === 'string') {
+      try {
+        updateData.categoryData = JSON.parse(updateData.categoryData);
+      } catch (e) {
+        updateData.categoryData = {};
+      }
+    }
+
+    // Check if SKU is being changed and validate uniqueness
+    if (updateData.sku && updateData.sku !== existingProduct.sku) {
+      const existingSkuProduct = await Product.findOne({
+        sku: updateData.sku,
+        _id: { $ne: id },
+      });
+      if (existingSkuProduct) {
+        return res.status(400).json({
+          success: false,
+          message: 'A product with this SKU already exists.',
+        });
+      }
+    }
+
+    // Handle image uploads
+    const imageUpdates = {};
+    const oldImages = [];
+
+    // Handle main image update
+    if (req.files && req.files.mainImage) {
+      try {
+        const mainImageUrl = await uploadFileFromPath(
+          req.files.mainImage[0].path,
+        );
+        imageUpdates.main = mainImageUrl;
+
+        // Mark old main image for deletion
+        if (
+          existingProduct.images.main &&
+          !existingProduct.images.main.includes('placeholder')
+        ) {
+          oldImages.push(existingProduct.images.main);
+        }
+      } catch (uploadError) {
+        console.error('Main image upload failed:', uploadError);
+        return res.status(400).json({
+          success: false,
+          message: 'Failed to upload main image.',
+        });
+      }
+    }
+
+    // Handle additional images update
+    if (req.files && req.files.additionalImages) {
+      try {
+        const additionalImageUrls = await uploadMultipleImages(
+          req.files.additionalImages.map(file => file.path),
+        );
+        imageUpdates.gallery = additionalImageUrls;
+
+        // Mark old gallery images for deletion
+        if (
+          existingProduct.images.gallery &&
+          existingProduct.images.gallery.length > 0
+        ) {
+          oldImages.push(
+            ...existingProduct.images.gallery.filter(
+              img => !img.includes('placeholder'),
+            ),
+          );
+        }
+      } catch (uploadError) {
+        console.error('Additional images upload failed:', uploadError);
+        return res.status(400).json({
+          success: false,
+          message: 'Failed to upload additional images.',
+        });
+      }
+    }
+
+    // Update images in updateData if any were uploaded
+    if (Object.keys(imageUpdates).length > 0) {
+      updateData.images = {
+        ...existingProduct.images,
+        ...imageUpdates,
+      };
+    }
+
+    // Update the product
+    const product = await Product.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+      context: 'query',
+    });
+
+    // Clean up old images from storage (async, don't wait)
+    if (oldImages.length > 0) {
+      // Note: You would implement deleteImages function in cloudflareR2.js
+      // deleteImages(oldImages).catch(err => console.error('Image cleanup failed:', err));
+    }
+
+    // Invalidate product caches
+    await ProductCache.invalidateProductCaches(product.uniqueId);
+
+    res.json({
+      success: true,
+      message: 'Product updated successfully with images.',
+      data: { product },
+    });
+  } catch (error) {
+    console.error('Update product with images error:', error);
+
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: 'Validation error.',
+        errors,
+      });
+    }
+
+    if (error.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid product ID format.',
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error while updating product with images.',
+    });
+  }
+};
+
+/**
  * Get single product for editing
  */
 const getProductById = async (req, res) => {
@@ -749,6 +929,7 @@ module.exports = {
   createProduct,
   createProductWithImages,
   updateProduct,
+  updateProductWithImages,
   getProductById,
   deleteProduct,
   bulkUpdateProducts,
