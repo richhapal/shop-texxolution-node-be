@@ -627,12 +627,44 @@ const updateProductWithImages = async (req, res) => {
     const oldImages = [];
 
     // Handle main image update
-    if (req.files && req.files.mainImage) {
+    if (req.files && req.files.mainImage && req.files.mainImage[0]) {
       try {
-        const mainImageUrl = await uploadFileFromPath(
-          req.files.mainImage[0].path,
+        const mainImageFile = req.files.mainImage[0];
+
+        // Validate main image file
+        const validation = validateFile(
+          mainImageFile,
+          ['image/jpeg', 'image/png', 'image/webp'],
+          5 * 1024 * 1024,
         );
-        imageUpdates.main = mainImageUrl;
+
+        if (validation.isValid) {
+          const folderPath = `products/${existingProduct.sku}/images`;
+          const fileName = `${folderPath}/main_${Date.now()}.${mainImageFile.originalname
+            .split('.')
+            .pop()}`;
+
+          const uploadResult = await uploadFileFromPath(
+            mainImageFile.path,
+            fileName,
+            mainImageFile.mimetype,
+            {
+              'product-id': existingProduct._id.toString(),
+              'product-sku': existingProduct.sku,
+              'uploaded-by': req.user._id.toString(),
+              'image-type': 'main',
+            },
+          );
+
+          if (uploadResult.success) {
+            imageUpdates.main = uploadResult.publicUrl;
+          }
+        } else {
+          return res.status(400).json({
+            success: false,
+            message: `Main image validation failed: ${validation.error}`,
+          });
+        }
 
         // Mark old main image for deletion
         if (
@@ -653,27 +685,55 @@ const updateProductWithImages = async (req, res) => {
     // Handle gallery images update
     if (req.files && req.files.galleryImages) {
       try {
-        const galleryImageUrls = await uploadMultipleImages(
-          req.files.galleryImages.map(file => file.path),
-        );
-        imageUpdates.gallery = galleryImageUrls;
+        const folderPath = `products/${existingProduct.sku}/images`;
+        const metadata = {
+          'product-id': existingProduct._id.toString(),
+          'product-sku': existingProduct.sku,
+          'uploaded-by': req.user._id.toString(),
+          'image-type': 'gallery',
+        };
 
-        // Mark old gallery images for deletion
-        if (
-          existingProduct.images.gallery &&
-          existingProduct.images.gallery.length > 0
-        ) {
-          oldImages.push(
-            ...existingProduct.images.gallery.filter(
-              img => !img.includes('placeholder'),
-            ),
+        // Filter and validate gallery images
+        const validGalleryImages = req.files.galleryImages.filter(file => {
+          const validation = validateFile(
+            file,
+            ['image/jpeg', 'image/png', 'image/webp'],
+            5 * 1024 * 1024,
           );
+          return validation.isValid;
+        });
+
+        if (validGalleryImages.length > 0) {
+          const uploadResults = await uploadMultipleImages(
+            validGalleryImages,
+            folderPath,
+            metadata,
+          );
+          imageUpdates.gallery = uploadResults.map(result => result.publicUrl);
+
+          // Mark old gallery images for deletion
+          if (
+            existingProduct.images.gallery &&
+            existingProduct.images.gallery.length > 0
+          ) {
+            oldImages.push(
+              ...existingProduct.images.gallery.filter(
+                img => !img.includes('placeholder'),
+              ),
+            );
+          }
+        } else if (req.files.galleryImages.length > 0) {
+          return res.status(400).json({
+            success: false,
+            message:
+              'All gallery images failed validation. Please check file types and sizes.',
+          });
         }
       } catch (uploadError) {
-        console.error('Additional images upload failed:', uploadError);
+        console.error('Gallery images upload failed:', uploadError);
         return res.status(400).json({
           success: false,
-          message: 'Failed to upload additional images.',
+          message: 'Failed to upload gallery images.',
         });
       }
     }
