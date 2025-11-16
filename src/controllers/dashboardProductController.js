@@ -761,6 +761,14 @@ const updateProductWithImages = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Debug: Log all incoming data
+    console.log('=== UPDATE PRODUCT WITH IMAGES DEBUG ===');
+    console.log('Request body keys:', Object.keys(req.body));
+    console.log('Request files:', req.files);
+    console.log('Body mainImage:', req.body.mainImage);
+    console.log('Body galleryImages:', req.body.galleryImages);
+    console.log('Body productData:', req.body.productData);
+
     // Find existing product first
     const existingProduct = await Product.findById(id);
     if (!existingProduct) {
@@ -770,15 +778,43 @@ const updateProductWithImages = async (req, res) => {
       });
     }
 
+    console.log('Existing product found:', existingProduct.sku);
+
     // Parse JSON data from productData field in FormData (like createProductWithImages)
     let updateData;
     try {
       updateData = JSON.parse(req.body.productData);
+      console.log('Parsed product data:', updateData);
     } catch (error) {
+      console.error('Failed to parse productData:', error);
       return res.status(400).json({
         success: false,
         message: 'Invalid product data JSON format.',
       });
+    }
+
+    // Handle mainImage and galleryImages from body
+    let mainImageData = null;
+    let galleryImagesData = [];
+
+    // Parse mainImage from body if present
+    if (req.body.mainImage) {
+      try {
+        mainImageData = JSON.parse(req.body.mainImage);
+        console.log('Parsed mainImage data:', mainImageData);
+      } catch (error) {
+        console.error('Failed to parse mainImage:', error);
+      }
+    }
+
+    // Parse galleryImages from body if present
+    if (req.body.galleryImages) {
+      try {
+        galleryImagesData = JSON.parse(req.body.galleryImages);
+        console.log('Parsed galleryImages data:', galleryImagesData);
+      } catch (error) {
+        console.error('Failed to parse galleryImages:', error);
+      }
     }
 
     // Remove fields that shouldn't be updated directly
@@ -803,14 +839,22 @@ const updateProductWithImages = async (req, res) => {
       }
     }
 
-    // Handle image uploads
+    // Handle image updates
     const imageUpdates = {};
     const oldImages = [];
-    console.log('Files received for update:', req.files);
-    // Handle main image update
+
+    console.log('Starting image processing...');
+
+    // Handle main image update from files
     if (req.files && req.files.mainImage && req.files.mainImage[0]) {
+      console.log('Processing main image from files...');
       try {
         const mainImageFile = req.files.mainImage[0];
+        console.log('Main image file details:', {
+          originalname: mainImageFile.originalname,
+          mimetype: mainImageFile.mimetype,
+          size: mainImageFile.size,
+        });
 
         // Validate main image file
         const validation = validateFile(
@@ -824,6 +868,8 @@ const updateProductWithImages = async (req, res) => {
           const fileName = `${folderPath}/main_${Date.now()}.${mainImageFile.originalname
             .split('.')
             .pop()}`;
+
+          console.log('Uploading main image to:', fileName);
 
           const uploadResult = await uploadFileFromPath(
             mainImageFile.path,
@@ -839,21 +885,26 @@ const updateProductWithImages = async (req, res) => {
 
           if (uploadResult.success) {
             imageUpdates.main = uploadResult.publicUrl;
+            console.log(
+              'Main image uploaded successfully:',
+              uploadResult.publicUrl,
+            );
+          } else {
+            console.error('Main image upload failed:', uploadResult);
           }
         } else {
+          console.error('Main image validation failed:', validation.error);
           return res.status(400).json({
             success: false,
             message: `Main image validation failed: ${validation.error}`,
           });
         }
 
-        // Mark old main image for deletion
-        if (
-          existingProduct.images.main &&
-          !existingProduct.images.main.includes('placeholder')
-        ) {
-          oldImages.push(existingProduct.images.main);
-        }
+        // Keep existing main image, don't mark for deletion
+        console.log(
+          'Keeping existing main image, adding new one:',
+          existingProduct.images.main,
+        );
       } catch (uploadError) {
         console.error('Main image upload failed:', uploadError);
         return res.status(400).json({
@@ -861,10 +912,15 @@ const updateProductWithImages = async (req, res) => {
           message: 'Failed to upload main image.',
         });
       }
+    } else if (mainImageData && mainImageData.url) {
+      // Handle main image from body data (if it's a URL)
+      console.log('Using main image from body data:', mainImageData.url);
+      imageUpdates.main = mainImageData.url;
     }
 
-    // Handle gallery images update
+    // Handle gallery images update from files
     if (req.files && req.files.galleryImages) {
+      console.log('Processing gallery images from files...');
       try {
         const folderPath = `products/${existingProduct.sku}/images`;
         const metadata = {
@@ -881,8 +937,14 @@ const updateProductWithImages = async (req, res) => {
             ['image/jpeg', 'image/png', 'image/webp'],
             5 * 1024 * 1024,
           );
+          console.log(
+            `Gallery image ${file.originalname} validation:`,
+            validation,
+          );
           return validation.isValid;
         });
+
+        console.log(`Valid gallery images count: ${validGalleryImages.length}`);
 
         if (validGalleryImages.length > 0) {
           const uploadResults = await uploadMultipleImages(
@@ -890,20 +952,31 @@ const updateProductWithImages = async (req, res) => {
             folderPath,
             metadata,
           );
-          imageUpdates.gallery = uploadResults.map(result => result.publicUrl);
+          const newGalleryUrls = uploadResults.map(result => result.publicUrl);
+          console.log('New gallery images uploaded:', newGalleryUrls);
 
-          // Mark old gallery images for deletion
+          // Keep existing gallery images and add new ones
           if (
             existingProduct.images.gallery &&
             existingProduct.images.gallery.length > 0
           ) {
-            oldImages.push(
-              ...existingProduct.images.gallery.filter(
-                img => !img.includes('placeholder'),
-              ),
+            imageUpdates.gallery = [
+              ...existingProduct.images.gallery,
+              ...newGalleryUrls,
+            ];
+            console.log(
+              'Combined gallery images (existing + new):',
+              imageUpdates.gallery,
+            );
+          } else {
+            imageUpdates.gallery = newGalleryUrls;
+            console.log(
+              'No existing gallery images, using new ones:',
+              imageUpdates.gallery,
             );
           }
         } else if (req.files.galleryImages.length > 0) {
+          console.error('All gallery images failed validation');
           return res.status(400).json({
             success: false,
             message:
@@ -917,15 +990,47 @@ const updateProductWithImages = async (req, res) => {
           message: 'Failed to upload gallery images.',
         });
       }
+    } else if (galleryImagesData && Array.isArray(galleryImagesData)) {
+      // Handle gallery images from body data (if they're URLs)
+      console.log('Using gallery images from body data:', galleryImagesData);
+      const validUrls = galleryImagesData.filter(img => img && img.url);
+      if (validUrls.length > 0) {
+        const newUrls = validUrls.map(img => img.url);
+        // Keep existing gallery images and add new ones from body
+        if (
+          existingProduct.images.gallery &&
+          existingProduct.images.gallery.length > 0
+        ) {
+          imageUpdates.gallery = [
+            ...existingProduct.images.gallery,
+            ...newUrls,
+          ];
+          console.log(
+            'Combined gallery images (existing + body data):',
+            imageUpdates.gallery,
+          );
+        } else {
+          imageUpdates.gallery = newUrls;
+          console.log(
+            'No existing gallery images, using body data:',
+            imageUpdates.gallery,
+          );
+        }
+      }
     }
 
-    // Update images in updateData if any were uploaded
+    // Update images in updateData if any were processed
     if (Object.keys(imageUpdates).length > 0) {
       updateData.images = {
         ...existingProduct.images,
         ...imageUpdates,
       };
+      console.log('Final image updates:', updateData.images);
+    } else {
+      console.log('No image updates to apply');
     }
+
+    console.log('Updating product with data:', updateData);
 
     // Update the product
     const product = await Product.findByIdAndUpdate(id, updateData, {
@@ -934,14 +1039,16 @@ const updateProductWithImages = async (req, res) => {
       context: 'query',
     });
 
-    // Clean up old images from storage (async, don't wait)
-    if (oldImages.length > 0) {
-      // Note: You would implement deleteImages function in cloudflareR2.js
-      // deleteImages(oldImages).catch(err => console.error('Image cleanup failed:', err));
-    }
+    console.log('Product updated successfully');
+
+    // No old images to clean up since we're keeping existing images
+    console.log('Keeping all existing images, no cleanup needed');
 
     // Invalidate product caches
     await ProductCache.invalidateProductCaches(product.uniqueId);
+    console.log('Product caches invalidated');
+
+    console.log('=== UPDATE PRODUCT WITH IMAGES COMPLETE ===');
 
     res.json({
       success: true,
