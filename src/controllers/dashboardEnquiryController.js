@@ -105,7 +105,7 @@ const getEnquiryById = async (req, res) => {
       .populate({
         path: 'assignedTo',
         model: 'TexxolutionUser',
-        select: 'name email department',
+        select: 'name email',
         options: { strictPopulate: false }
       })
       .populate({
@@ -433,28 +433,10 @@ const getEnquiryStats = async (req, res) => {
           options: { strictPopulate: false }
         }),
       Enquiry.aggregate([
-        { $match: { assignedTo: { $exists: true } } },
+        { $match: { assignedTo: { $exists: true, $ne: null } } },
         { $group: { _id: '$assignedTo', count: { $sum: 1 } } },
         { $sort: { count: -1 } },
         { $limit: 5 },
-        {
-          $lookup: {
-            from: 'texxolutionusers',
-            localField: '_id',
-            foreignField: '_id',
-            as: 'user',
-          },
-        },
-        { $unwind: '$user' },
-        {
-          $project: {
-            _id: 0,
-            userId: '$_id',
-            name: '$user.name',
-            email: '$user.email',
-            count: 1,
-          },
-        },
       ]),
     ]);
 
