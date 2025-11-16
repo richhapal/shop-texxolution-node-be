@@ -867,11 +867,22 @@ const updateProductWithImages = async (req, res) => {
 
     console.log('Starting image processing...');
 
+    // Find files by fieldname since we're using upload.any()
+    const mainImageFiles = req.files
+      ? req.files.filter(file => file.fieldname === 'mainImage')
+      : [];
+    const galleryImageFiles = req.files
+      ? req.files.filter(file => file.fieldname === 'galleryImages')
+      : [];
+
+    console.log('Found mainImage files:', mainImageFiles.length);
+    console.log('Found galleryImages files:', galleryImageFiles.length);
+
     // Handle main image update from files
-    if (req.files && req.files.mainImage && req.files.mainImage[0]) {
+    if (mainImageFiles.length > 0) {
       console.log('Processing main image from files...');
       try {
-        const mainImageFile = req.files.mainImage[0];
+        const mainImageFile = mainImageFiles[0];
         console.log('Main image file details:', {
           originalname: mainImageFile.originalname,
           mimetype: mainImageFile.mimetype,
@@ -945,7 +956,7 @@ const updateProductWithImages = async (req, res) => {
     }
 
     // Handle gallery images update from files
-    if (req.files && req.files.galleryImages) {
+    if (galleryImageFiles.length > 0) {
       console.log('Processing gallery images from files...');
       try {
         const folderPath = `products/${existingProduct.sku}/images`;
@@ -957,7 +968,7 @@ const updateProductWithImages = async (req, res) => {
         };
 
         // Filter and validate gallery images
-        const validGalleryImages = req.files.galleryImages.filter(file => {
+        const validGalleryImages = galleryImageFiles.filter(file => {
           const validation = validateFile(
             file,
             ['image/jpeg', 'image/png', 'image/webp'],
@@ -1001,7 +1012,7 @@ const updateProductWithImages = async (req, res) => {
               imageUpdates.gallery,
             );
           }
-        } else if (req.files.galleryImages.length > 0) {
+        } else if (galleryImageFiles.length > 0) {
           console.error('All gallery images failed validation');
           return res.status(400).json({
             success: false,
