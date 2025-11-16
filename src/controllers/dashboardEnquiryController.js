@@ -9,93 +9,87 @@ const getDashboardEnquiries = async (req, res) => {
   try {
     const {
       page = 1,
-      limit = 20,
-      sort = '-createdAt',
+      limit = 10,
       status,
-      assignedTo,
       priority,
-      source,
       search,
-      dateFrom,
-      dateTo,
+      sortBy = 'createdAt',
+      order = 'desc',
     } = req.query;
 
     // Build filter object
     const filter = {};
-
-    if (status) filter.status = status;
-    if (assignedTo) filter.assignedTo = assignedTo;
-    if (priority) filter.priority = priority;
-    if (source) filter.source = source;
-
-    // Date range filter
-    if (dateFrom || dateTo) {
-      filter.createdAt = {};
-      if (dateFrom) filter.createdAt.$gte = new Date(dateFrom);
-      if (dateTo) filter.createdAt.$lte = new Date(dateTo);
+    
+    if (status && status !== 'all') {
+      filter.status = status;
     }
 
-    // Search filter
+    if (priority && priority !== 'all') {
+      filter.priority = priority;
+    }
+
     if (search) {
       filter.$or = [
-        { customerName: { $regex: search, $options: 'i' } },
-        { company: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { enquiryNo: { $regex: search, $options: 'i' } },
+        { 'contact.name': { $regex: search, $options: 'i' } },
+        { 'contact.email': { $regex: search, $options: 'i' } },
+        { 'contact.company': { $regex: search, $options: 'i' } },
+        { subject: { $regex: search, $options: 'i' } },
+        { enquiryId: { $regex: search, $options: 'i' } },
       ];
     }
 
     // Build sort object
     const sortObj = {};
-    if (sort) {
-      const sortFields = sort.split(',');
-      sortFields.forEach(field => {
-        if (field.startsWith('-')) {
-          sortObj[field.slice(1)] = -1;
-        } else {
-          sortObj[field] = 1;
-        }
-      });
-    }
+    sortObj[sortBy] = order === 'desc' ? -1 : 1;
 
-    const pageNumber = parseInt(page);
-    const limitNumber = parseInt(limit);
-    const skip = (pageNumber - 1) * limitNumber;
+    // Get total count for pagination
+    const total = await Enquiry.countDocuments(filter);
 
-    // Execute query
-    const [enquiries, total] = await Promise.all([
-      Enquiry.find(filter)
-        .populate('assignedTo', 'name email')
-        .populate('products.productId', 'name sku category')
-        .sort(sortObj)
-        .skip(skip)
-        .limit(limitNumber)
-        .lean(),
-      Enquiry.countDocuments(filter),
-    ]);
+    // Calculate pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    const totalPages = Math.ceil(total / limitNumber);
+    // Fetch enquiries with safer population handling
+    const enquiries = await Enquiry.find(filter)
+      .sort(sortObj)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .populate({
+        path: 'assignedTo',
+        model: 'TexxolutionUser',
+        select: 'name email',
+        options: { strictPopulate: false }
+      })
+      .populate({
+        path: 'products.productId',
+        model: 'TexxolutionProduct',
+        select: 'name sku category',
+        options: { strictPopulate: false }
+      })
+      .lean();
+
+    // Calculate pagination info
+    const totalPages = Math.ceil(total / parseInt(limit));
 
     res.json({
       success: true,
-      message: 'Enquiries retrieved successfully.',
       data: {
         enquiries,
         pagination: {
-          currentPage: pageNumber,
+          currentPage: parseInt(page),
           totalPages,
-          totalEnquiries: total,
-          hasNextPage: pageNumber < totalPages,
-          hasPrevPage: pageNumber > 1,
-          limit: limitNumber,
+          totalItems: total,
+          itemsPerPage: parseInt(limit),
+          hasNextPage: parseInt(page) < totalPages,
+          hasPrevPage: parseInt(page) > 1,
         },
       },
     });
   } catch (error) {
-    console.error('Get dashboard enquiries error:', error);
+    console.error('Error fetching dashboard enquiries:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error while retrieving enquiries.',
+      message: 'Failed to fetch enquiries',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
