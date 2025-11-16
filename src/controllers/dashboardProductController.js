@@ -793,27 +793,46 @@ const updateProductWithImages = async (req, res) => {
       });
     }
 
-    // Handle mainImage and galleryImages from body
+    // Handle mainImage and galleryImages from productData
     let mainImageData = null;
     let galleryImagesData = [];
 
-    // Parse mainImage from body if present
-    if (req.body.mainImage) {
-      try {
-        mainImageData = JSON.parse(req.body.mainImage);
-        console.log('Parsed mainImage data:', mainImageData);
-      } catch (error) {
-        console.error('Failed to parse mainImage:', error);
+    // Extract mainImage from productData if present
+    if (updateData.mainImage) {
+      if (typeof updateData.mainImage === 'string') {
+        mainImageData = { url: updateData.mainImage };
+        console.log('Main image URL from productData:', updateData.mainImage);
+      } else if (updateData.mainImage && updateData.mainImage.url) {
+        mainImageData = updateData.mainImage;
+        console.log('Main image object from productData:', mainImageData);
       }
     }
 
-    // Parse galleryImages from body if present
+    // Extract gallery from productData if present
+    if (updateData.gallery && Array.isArray(updateData.gallery)) {
+      galleryImagesData = updateData.gallery.filter(
+        img => img && (img.url || typeof img === 'string'),
+      );
+      console.log('Gallery images from productData:', galleryImagesData);
+    }
+
+    // Parse mainImage from body if present (backup method)
+    if (req.body.mainImage) {
+      try {
+        mainImageData = JSON.parse(req.body.mainImage);
+        console.log('Parsed mainImage data from body:', mainImageData);
+      } catch (error) {
+        console.error('Failed to parse mainImage from body:', error);
+      }
+    }
+
+    // Parse galleryImages from body if present (backup method)
     if (req.body.galleryImages) {
       try {
         galleryImagesData = JSON.parse(req.body.galleryImages);
-        console.log('Parsed galleryImages data:', galleryImagesData);
+        console.log('Parsed galleryImages data from body:', galleryImagesData);
       } catch (error) {
-        console.error('Failed to parse galleryImages:', error);
+        console.error('Failed to parse galleryImages from body:', error);
       }
     }
 
@@ -821,6 +840,9 @@ const updateProductWithImages = async (req, res) => {
     delete updateData._id;
     delete updateData.createdBy;
     delete updateData.createdAt;
+    // Remove image fields from updateData as we handle them separately
+    delete updateData.mainImage;
+    delete updateData.gallery;
 
     // Add updatedBy
     updateData.updatedBy = req.user._id;
@@ -913,9 +935,13 @@ const updateProductWithImages = async (req, res) => {
         });
       }
     } else if (mainImageData && mainImageData.url) {
-      // Handle main image from body data (if it's a URL)
-      console.log('Using main image from body data:', mainImageData.url);
+      // Handle main image from productData (if it's a URL)
+      console.log('Using main image from productData:', mainImageData.url);
       imageUpdates.main = mainImageData.url;
+    } else if (typeof mainImageData === 'string') {
+      // Handle main image as direct string URL
+      console.log('Using main image as direct URL:', mainImageData);
+      imageUpdates.main = mainImageData;
     }
 
     // Handle gallery images update from files
@@ -991,28 +1017,42 @@ const updateProductWithImages = async (req, res) => {
         });
       }
     } else if (galleryImagesData && Array.isArray(galleryImagesData)) {
-      // Handle gallery images from body data (if they're URLs)
-      console.log('Using gallery images from body data:', galleryImagesData);
-      const validUrls = galleryImagesData.filter(img => img && img.url);
+      // Handle gallery images from productData (if they're URLs)
+      console.log(
+        'Processing gallery images from productData:',
+        galleryImagesData,
+      );
+
+      // Filter and extract valid URLs
+      const validUrls = galleryImagesData
+        .map(img => {
+          if (typeof img === 'string' && img.trim()) return img.trim();
+          if (img && img.url && typeof img.url === 'string')
+            return img.url.trim();
+          return null;
+        })
+        .filter(url => url && url.startsWith('http'));
+
+      console.log('Valid URLs extracted from productData:', validUrls);
+
       if (validUrls.length > 0) {
-        const newUrls = validUrls.map(img => img.url);
-        // Keep existing gallery images and add new ones from body
+        // Keep existing gallery images and add new ones from productData
         if (
           existingProduct.images.gallery &&
           existingProduct.images.gallery.length > 0
         ) {
           imageUpdates.gallery = [
             ...existingProduct.images.gallery,
-            ...newUrls,
+            ...validUrls,
           ];
           console.log(
-            'Combined gallery images (existing + body data):',
+            'Combined gallery images (existing + productData):',
             imageUpdates.gallery,
           );
         } else {
-          imageUpdates.gallery = newUrls;
+          imageUpdates.gallery = validUrls;
           console.log(
-            'No existing gallery images, using body data:',
+            'No existing gallery images, using productData:',
             imageUpdates.gallery,
           );
         }
