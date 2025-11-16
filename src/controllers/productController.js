@@ -20,7 +20,7 @@ const getProducts = async (req, res) => {
     } = req.query;
 
     // Build filter object
-    const filter = { status: 'active' };
+    const filter = { status: 'ACTIVE' };
 
     // Category filter
     if (category) {
@@ -93,7 +93,7 @@ const getProducts = async (req, res) => {
     // Prepare products with availability
     const processedProducts = products.map(product => ({
       ...product,
-      isAvailable: product.status === 'active',
+      isAvailable: product.status === 'ACTIVE',
     }));
 
     // Prepare pagination data
@@ -136,7 +136,7 @@ const getProductById = async (req, res) => {
 
     if (!product) {
       // Get from database by uniqueId
-      product = await Product.findOne({ uniqueId: id, status: 'active' })
+      product = await Product.findOne({ uniqueId: id, status: 'ACTIVE' })
         .select('-vendor -createdBy -updatedBy -pricing')
         .lean();
 
@@ -157,7 +157,7 @@ const getProductById = async (req, res) => {
     // Add calculated fields
     const productWithCalcs = {
       ...product,
-      isAvailable: product.status === 'active',
+      isAvailable: product.status === 'ACTIVE',
     };
 
     res.json({

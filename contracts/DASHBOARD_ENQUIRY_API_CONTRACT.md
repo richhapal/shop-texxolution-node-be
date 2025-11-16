@@ -9,6 +9,7 @@ This document outlines the enquiry management API endpoints for the Shop Texxolu
 ## Authentication
 
 All endpoints require a valid JWT token in the Authorization header:
+
 ```
 Authorization: Bearer <jwt-token>
 ```
@@ -33,6 +34,7 @@ Authorization: Bearer <jwt-token>
 **Access:** All authenticated users
 
 **Query Parameters:**
+
 - `page` (optional): Page number (default: 1)
 - `limit` (optional): Items per page (default: 20, max: 100)
 - `sort` (optional): Sort field (default: -createdAt)
@@ -157,7 +159,7 @@ Authorization: Bearer <jwt-token>
           "main": "https://cdn.example.com/products/tex-001/main.jpg"
         },
         "pricing": {
-          "basePrice": 12.50,
+          "basePrice": 12.5,
           "currency": "USD"
         }
       },
@@ -208,7 +210,7 @@ Authorization: Bearer <jwt-token>
           "_id": "674b777888999abc00011122",
           "quotationId": "QUO-2024-001",
           "status": "sent",
-          "totalAmount": 6250.00,
+          "totalAmount": 6250.0,
           "currency": "USD",
           "validUntil": "2024-12-16T23:59:59.000Z",
           "createdAt": "2024-11-17T09:00:00.000Z"
@@ -365,6 +367,7 @@ Authorization: Bearer <jwt-token>
 **Access:** All authenticated users
 
 **Query Parameters:**
+
 - `period` (optional): Time period (today, week, month, quarter, year)
 - `dateFrom` (optional): Custom start date
 - `dateTo` (optional): Custom end date
@@ -442,6 +445,7 @@ Authorization: Bearer <jwt-token>
 **Access:** Admin, Editor
 
 **Query Parameters:**
+
 - `format` (required): Export format (csv, xlsx, pdf)
 - `status` (optional): Filter by status
 - `dateFrom` (optional): Start date for export
@@ -478,10 +482,7 @@ Content-Type: application/json
 
 ```json
 {
-  "enquiryIds": [
-    "674b123456789abc12345678",
-    "674b123456789abc12345679"
-  ],
+  "enquiryIds": ["674b123456789abc12345678", "674b123456789abc12345679"],
   "updateData": {
     "status": "in-progress",
     "assignedTo": "674b555666777abc88899900"
@@ -504,7 +505,7 @@ Content-Type: application/json
         "status": "updated"
       },
       {
-        "enquiryId": "ENQ-2024-002", 
+        "enquiryId": "ENQ-2024-002",
         "status": "updated"
       }
     ]
@@ -561,6 +562,7 @@ Content-Type: application/json
 ## Error Responses
 
 ### 400 - Validation Error
+
 ```json
 {
   "success": false,
@@ -572,6 +574,7 @@ Content-Type: application/json
 ```
 
 ### 403 - Insufficient Permissions
+
 ```json
 {
   "success": false,
@@ -580,6 +583,7 @@ Content-Type: application/json
 ```
 
 ### 404 - Enquiry Not Found
+
 ```json
 {
   "success": false,
@@ -588,6 +592,7 @@ Content-Type: application/json
 ```
 
 ### 409 - Conflict
+
 ```json
 {
   "success": false,
@@ -606,6 +611,7 @@ rejected  rejected  rejected
 ```
 
 **Status Definitions:**
+
 - **new**: Just submitted, not yet reviewed
 - **in-progress**: Being processed by sales team
 - **quoted**: Quotation sent to customer
@@ -616,7 +622,7 @@ rejected  rejected  rejected
 
 - **low**: Standard enquiry, no rush
 - **medium**: Important enquiry, follow up within 2 days
-- **high**: Urgent enquiry, follow up within 24 hours  
+- **high**: Urgent enquiry, follow up within 24 hours
 - **urgent**: Critical enquiry, immediate attention required
 
 ---
@@ -627,36 +633,45 @@ rejected  rejected  rejected
 
 ```javascript
 // Get enquiries with filtering
-const response = await fetch('/api/dashboard/enquiries?status=new&urgency=high&page=1', {
-  headers: {
-    'Authorization': `Bearer ${token}`
-  }
-});
+const response = await fetch(
+  '/api/dashboard/enquiries?status=new&urgency=high&page=1',
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  },
+);
 
 // Update enquiry status
-const updateResponse = await fetch('/api/dashboard/enquiries/674b123456789abc12345678', {
-  method: 'PUT',
-  headers: {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
+const updateResponse = await fetch(
+  '/api/dashboard/enquiries/674b123456789abc12345678',
+  {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      status: 'in-progress',
+      assignedTo: '674b555666777abc88899900',
+    }),
   },
-  body: JSON.stringify({
-    status: 'in-progress',
-    assignedTo: '674b555666777abc88899900'
-  })
-});
+);
 
 // Add note to enquiry
-const noteResponse = await fetch('/api/dashboard/enquiries/674b123456789abc12345678/notes', {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
+const noteResponse = await fetch(
+  '/api/dashboard/enquiries/674b123456789abc12345678/notes',
+  {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      content: 'Customer requires custom packaging',
+    }),
   },
-  body: JSON.stringify({
-    content: 'Customer requires custom packaging'
-  })
-});
+);
 ```
 
 ### cURL
@@ -683,18 +698,22 @@ curl -H "Authorization: Bearer TOKEN" \
 ## Integration Notes
 
 ### Webhook Events
+
 The system can send webhook notifications for:
+
 - New enquiry received
 - Status changes
 - Quotation sent
 - Follow-up reminders
 
 ### Email Integration
+
 - Automatic email notifications to assigned users
 - Email templates for customer communication
 - Email tracking and delivery status
 
 ### CRM Integration
+
 - Export data to external CRM systems
 - Import customer data from CRM
 - Sync contact information

@@ -116,8 +116,9 @@ const ProductSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ['active', 'inactive', 'draft', 'discontinued'],
-      default: 'draft',
+      enum: ['ACTIVE', 'INACTIVE', 'DRAFT', 'DISCONTINUED'],
+      default: 'DRAFT',
+      uppercase: true,
     },
     createdBy: {
       type: Schema.Types.ObjectId,
@@ -361,7 +362,7 @@ ProductSchema.virtual('finalPrice').get(function () {
 
 // Virtual for availability status
 ProductSchema.virtual('isAvailable').get(function () {
-  return this.status === 'active';
+  return this.status === 'ACTIVE';
 });
 
 // Helper function to generate unique ID from product name
@@ -385,11 +386,17 @@ function generateUniqueId(name, category) {
   return `${cleanName}-${categoryShort}-${timestamp}`;
 }
 
-// Pre-save middleware to generate uniqueId
+// Pre-save middleware to generate uniqueId and normalize status
 ProductSchema.pre('save', function (next) {
   if (this.isNew && !this.uniqueId) {
     this.uniqueId = generateUniqueId(this.name, this.category);
   }
+
+  // Ensure status is always uppercase
+  if (this.status && typeof this.status === 'string') {
+    this.status = this.status.toUpperCase();
+  }
+
   next();
 });
 

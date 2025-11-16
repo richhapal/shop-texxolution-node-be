@@ -9,6 +9,7 @@ This document outlines the analytics and reporting API endpoints for the Shop Te
 ## Authentication
 
 All endpoints require a valid JWT token in the Authorization header:
+
 ```
 Authorization: Bearer <jwt-token>
 ```
@@ -33,6 +34,7 @@ Authorization: Bearer <jwt-token>
 **Access:** All authenticated users
 
 **Query Parameters:**
+
 - `period` (optional): Time period (today, week, month, quarter, year, custom)
 - `dateFrom` (optional): Start date for custom period (YYYY-MM-DD)
 - `dateTo` (optional): End date for custom period (YYYY-MM-DD)
@@ -65,8 +67,8 @@ Authorization: Bearer <jwt-token>
         "rejected": 8,
         "pending": 37,
         "conversionRate": 17.6,
-        "averageValue": 2850.00,
-        "totalValue": 242250.00
+        "averageValue": 2850.0,
+        "totalValue": 242250.0
       },
       "products": {
         "total": 1250,
@@ -119,6 +121,7 @@ Authorization: Bearer <jwt-token>
 **Access:** Admin, Editor
 
 **Query Parameters:**
+
 - `period` (optional): Time period (month, quarter, year, custom)
 - `dateFrom` (optional): Start date (YYYY-MM-DD)
 - `dateTo` (optional): End date (YYYY-MM-DD)
@@ -132,22 +135,22 @@ Authorization: Bearer <jwt-token>
   "message": "Revenue analytics retrieved successfully.",
   "data": {
     "summary": {
-      "totalRevenue": 125000.00,
-      "projectedRevenue": 180000.00,
+      "totalRevenue": 125000.0,
+      "projectedRevenue": 180000.0,
       "growth": 22.5,
       "currency": "USD",
       "period": "month"
     },
     "breakdown": {
       "byStatus": {
-        "accepted": 45000.00,
-        "pending": 80000.00,
-        "pipeline": 125000.00
+        "accepted": 45000.0,
+        "pending": 80000.0,
+        "pipeline": 125000.0
       },
       "byProduct": [
         {
           "productName": "Premium Cotton Fabric",
-          "revenue": 35000.00,
+          "revenue": 35000.0,
           "percentage": 28.0,
           "quotations": 15
         }
@@ -155,7 +158,7 @@ Authorization: Bearer <jwt-token>
       "byCustomer": [
         {
           "company": "ABC Garments Ltd",
-          "revenue": 15000.00,
+          "revenue": 15000.0,
           "quotations": 5,
           "conversionRate": 80.0
         }
@@ -163,7 +166,7 @@ Authorization: Bearer <jwt-token>
       "byRegion": [
         {
           "region": "North America",
-          "revenue": 65000.00,
+          "revenue": 65000.0,
           "percentage": 52.0
         }
       ]
@@ -171,13 +174,13 @@ Authorization: Bearer <jwt-token>
     "timeline": [
       {
         "date": "2024-11-01",
-        "revenue": 5000.00,
+        "revenue": 5000.0,
         "quotations": 3
       }
     ],
     "forecast": {
-      "nextMonth": 135000.00,
-      "nextQuarter": 400000.00,
+      "nextMonth": 135000.0,
+      "nextQuarter": 400000.0,
       "confidence": 78.5
     }
   }
@@ -205,26 +208,26 @@ Authorization: Bearer <jwt-token>
       "activeCustomers": 85,
       "newCustomers": 15,
       "returningCustomers": 70,
-      "averageOrderValue": 2850.00
+      "averageOrderValue": 2850.0
     },
     "segments": [
       {
         "segment": "Enterprise",
         "count": 45,
         "percentage": 14.1,
-        "averageValue": 15000.00
+        "averageValue": 15000.0
       },
       {
         "segment": "SME",
         "count": 180,
         "percentage": 56.3,
-        "averageValue": 3500.00
+        "averageValue": 3500.0
       },
       {
         "segment": "Startup",
         "count": 95,
         "percentage": 29.6,
-        "averageValue": 750.00
+        "averageValue": 750.0
       }
     ],
     "geography": [
@@ -232,13 +235,13 @@ Authorization: Bearer <jwt-token>
         "country": "USA",
         "customers": 125,
         "percentage": 39.1,
-        "revenue": 65000.00
+        "revenue": 65000.0
       },
       {
         "country": "Germany",
         "customers": 65,
         "percentage": 20.3,
-        "revenue": 35000.00
+        "revenue": 35000.0
       }
     ],
     "engagement": {
@@ -268,6 +271,7 @@ Authorization: Bearer <jwt-token>
 **Access:** All authenticated users
 
 **Query Parameters:**
+
 - `category` (optional): Filter by product category
 - `limit` (optional): Number of top products to return (default: 10)
 - `sortBy` (optional): Sort criteria (views, enquiries, quotations, revenue)
@@ -293,7 +297,7 @@ Authorization: Bearer <jwt-token>
         "views": 1250,
         "enquiries": 45,
         "quotations": 25,
-        "revenue": 35000.00,
+        "revenue": 35000.0,
         "conversionRate": 55.6,
         "category": "Cotton"
       }
@@ -304,7 +308,7 @@ Authorization: Bearer <jwt-token>
         "products": 320,
         "views": 15000,
         "enquiries": 180,
-        "revenue": 85000.00
+        "revenue": 85000.0
       }
     ],
     "performance": {
@@ -325,7 +329,7 @@ Authorization: Bearer <jwt-token>
       "topRevenue": [
         {
           "product": "Premium Cotton Fabric",
-          "revenue": 35000.00,
+          "revenue": 35000.0,
           "quotations": 25
         }
       ]
@@ -426,6 +430,7 @@ Authorization: Bearer <jwt-token>
 ```
 
 **Chart Types:**
+
 - `enquiry-timeline`
 - `quotation-conversion`
 - `revenue-trend`
@@ -524,6 +529,7 @@ Authorization: Bearer <jwt-token>
 ## Error Responses
 
 ### 400 - Invalid Parameters
+
 ```json
 {
   "success": false,
@@ -532,6 +538,7 @@ Authorization: Bearer <jwt-token>
 ```
 
 ### 403 - Insufficient Permissions
+
 ```json
 {
   "success": false,

@@ -28,7 +28,12 @@ const getDashboardProducts = async (req, res) => {
     const filter = {};
 
     if (category) filter.category = category;
-    if (status) filter.status = status;
+    // If no status filter is provided, default to active and draft products
+    if (status) {
+      filter.status = status.toUpperCase();
+    } else {
+      filter.status = { $in: ['ACTIVE', 'DRAFT'] };
+    }
     if (createdBy) filter.createdBy = createdBy;
 
     // Search filter
@@ -124,7 +129,7 @@ const createProduct = async (req, res) => {
       leadTime,
       tags,
       specSheet,
-      status = 'draft',
+      status = 'DRAFT',
 
       // Category-specific data from Lovable form
       categoryData = {},
@@ -266,7 +271,7 @@ const createProductWithImages = async (req, res) => {
       moq,
       leadTime,
       tags,
-      status = 'draft',
+      status = 'DRAFT',
       categoryData = {},
       pricing,
       seo,
@@ -1175,7 +1180,7 @@ const getProductById = async (req, res) => {
 };
 
 /**
- * Delete product (soft delete - change status to discontinued)
+ * Delete product (soft delete - change status to inactive)
  */
 const deleteProduct = async (req, res) => {
   try {
@@ -1190,8 +1195,8 @@ const deleteProduct = async (req, res) => {
       });
     }
 
-    // Soft delete - change status to discontinued
-    product.status = 'discontinued';
+    // Soft delete - change status to inactive
+    product.status = 'INACTIVE';
     product.updatedBy = req.user._id;
     await product.save();
 
@@ -1291,7 +1296,7 @@ const getProductStats = async (req, res) => {
       Product.countDocuments(),
       Product.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
       Product.aggregate([
-        { $match: { status: 'active' } },
+        { $match: { status: 'ACTIVE' } },
         { $group: { _id: '$category', count: { $sum: 1 } } },
         { $sort: { count: -1 } },
       ]),

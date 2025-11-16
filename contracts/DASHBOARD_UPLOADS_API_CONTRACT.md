@@ -9,6 +9,7 @@ This document outlines the file upload and management API endpoints for the Shop
 ## Authentication
 
 All endpoints require a valid JWT token in the Authorization header:
+
 ```
 Authorization: Bearer <jwt-token>
 ```
@@ -34,12 +35,14 @@ Content-Type: multipart/form-data
 **Access:** Admin, Editor
 
 **Request Body (multipart/form-data):**
+
 - `mainImage` (file): Main product image (required)
 - `galleryImages` (files): Additional product images (optional, max 10)
 - `productId` (string): Product ID for image association
 - `category` (string): Image category (main, gallery, technical, lifestyle)
 
 **File Specifications:**
+
 - **Formats**: JPG, JPEG, PNG, WebP
 - **Max Size**: 10MB per image
 - **Max Dimensions**: 4096x4096 pixels
@@ -99,6 +102,7 @@ Content-Type: multipart/form-data
 **Access:** Admin, Editor
 
 **Request Body (multipart/form-data):**
+
 - `document` (file): Document file (required)
 - `category` (string): Document category (specification, certificate, manual, brochure)
 - `title` (string): Document title
@@ -108,6 +112,7 @@ Content-Type: multipart/form-data
 - `enquiryId` (string): Associated enquiry ID (optional)
 
 **File Specifications:**
+
 - **Formats**: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX
 - **Max Size**: 50MB per document
 
@@ -153,6 +158,7 @@ Content-Type: multipart/form-data
 **Access:** Admin, Editor
 
 **Request Body (multipart/form-data):**
+
 - `attachments` (files): Files to attach (max 5)
 - `category` (string): Attachment category (terms, specifications, samples, certificates)
 
@@ -193,6 +199,7 @@ Authorization: Bearer <jwt-token>
 **Access:** All authenticated users
 
 **Query Parameters:**
+
 - `type` (optional): File type filter (images, documents, all)
 - `category` (optional): Category filter
 - `productId` (optional): Filter by product
@@ -371,9 +378,11 @@ Authorization: Bearer <jwt-token>
 **Access:** All authenticated users
 
 **Query Parameters:**
+
 - `inline` (optional): Display inline instead of download (default: false)
 
 **Success Response (200):**
+
 - Returns the actual file with appropriate headers
 - Content-Type: Based on file type
 - Content-Disposition: attachment or inline
@@ -425,6 +434,7 @@ Content-Type: application/json
 ```
 
 **Available Actions:**
+
 - `delete`: Delete multiple files
 - `update_category`: Update category for multiple files
 - `add_tags`: Add tags to multiple files
@@ -596,6 +606,7 @@ Authorization: Bearer <jwt-token>
 ## Error Responses
 
 ### 400 - File Validation Error
+
 ```json
 {
   "success": false,
@@ -608,6 +619,7 @@ Authorization: Bearer <jwt-token>
 ```
 
 ### 413 - File Too Large
+
 ```json
 {
   "success": false,
@@ -618,6 +630,7 @@ Authorization: Bearer <jwt-token>
 ```
 
 ### 415 - Unsupported Media Type
+
 ```json
 {
   "success": false,

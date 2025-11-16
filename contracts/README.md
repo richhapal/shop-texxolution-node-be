@@ -5,20 +5,24 @@ This directory contains comprehensive API documentation for the Shop Texxolution
 ## Available Contracts
 
 ### Public APIs
+
 - **[PUBLIC_API_CONTRACT.md](./PUBLIC_API_CONTRACT.md)** - Public-facing product APIs for customers and website visitors
 
-### Dashboard APIs  
+### Dashboard APIs
 
 #### Core Management
+
 - **[DASHBOARD_AUTH_API_CONTRACT.md](./DASHBOARD_AUTH_API_CONTRACT.md)** - Authentication and user management for dashboard
 - **[DASHBOARD_PRODUCTS_API_CONTRACT.md](./DASHBOARD_PRODUCTS_API_CONTRACT.md)** - Product management for dashboard users
 - **[DASHBOARD_ENQUIRY_API_CONTRACT.md](./DASHBOARD_ENQUIRY_API_CONTRACT.md)** - Enquiry management and customer communication
 - **[DASHBOARD_QUOTATION_API_CONTRACT.md](./DASHBOARD_QUOTATION_API_CONTRACT.md)** - Quotation creation, management, and tracking
 
 #### Analytics & Reporting
+
 - **[DASHBOARD_ANALYTICS_API_CONTRACT.md](./DASHBOARD_ANALYTICS_API_CONTRACT.md)** - Business analytics, metrics, and reporting
 
 #### File Management
+
 - **[DASHBOARD_UPLOADS_API_CONTRACT.md](./DASHBOARD_UPLOADS_API_CONTRACT.md)** - File upload, management, and storage
 
 ## Contract Structure
@@ -27,7 +31,7 @@ Each contract file follows a standardized structure:
 
 1. **Overview** - Purpose and scope of the API module
 2. **Authentication** - Required authentication methods
-3. **User Roles & Permissions** - Access control specifications  
+3. **User Roles & Permissions** - Access control specifications
 4. **Endpoints** - Detailed endpoint documentation including:
    - HTTP methods and URLs
    - Request/response examples
@@ -40,7 +44,9 @@ Each contract file follows a standardized structure:
 ## API Module Overview
 
 ### Public Module
+
 **Purpose**: Customer-facing APIs for product browsing and basic interactions
+
 - Product catalog access
 - Search and filtering
 - Basic enquiry submission
@@ -136,6 +142,7 @@ All APIs follow a consistent response structure:
    ```
 
 3. **Error handling**:
+
    ```javascript
    try {
      const response = await fetch('/api/dashboard/products');

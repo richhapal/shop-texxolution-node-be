@@ -9,6 +9,7 @@ This document outlines the quotation management API endpoints for the Shop Texxo
 ## Authentication
 
 All endpoints require a valid JWT token in the Authorization header:
+
 ```
 Authorization: Bearer <jwt-token>
 ```
@@ -33,6 +34,7 @@ Authorization: Bearer <jwt-token>
 **Access:** All authenticated users
 
 **Query Parameters:**
+
 - `page` (optional): Page number (default: 1)
 - `limit` (optional): Items per page (default: 20, max: 100)
 - `sort` (optional): Sort field (default: -createdAt)
@@ -86,15 +88,15 @@ Authorization: Bearer <jwt-token>
             "description": "Premium Cotton Fabric - Navy Blue",
             "quantity": 500,
             "unit": "meters",
-            "unitPrice": 12.50,
+            "unitPrice": 12.5,
             "discount": 5,
-            "totalPrice": 5937.50
+            "totalPrice": 5937.5
           }
         ],
-        "subtotal": 6250.00,
-        "discountAmount": 312.50,
-        "taxAmount": 0.00,
-        "totalAmount": 5937.50,
+        "subtotal": 6250.0,
+        "discountAmount": 312.5,
+        "taxAmount": 0.0,
+        "totalAmount": 5937.5,
         "currency": "USD",
         "status": "sent",
         "validUntil": "2024-12-16T23:59:59.000Z",
@@ -132,8 +134,8 @@ Authorization: Bearer <jwt-token>
         "rejected": 5,
         "expired": 2
       },
-      "totalValue": 125000.00,
-      "averageValue": 2500.00,
+      "totalValue": 125000.0,
+      "averageValue": 2500.0,
       "currency": "USD"
     }
   }
@@ -173,7 +175,7 @@ Content-Type: application/json
       "description": "Premium Cotton Fabric - Navy Blue",
       "quantity": 500,
       "unit": "meters",
-      "unitPrice": 12.50,
+      "unitPrice": 12.5,
       "discount": 5
     },
     {
@@ -181,7 +183,7 @@ Content-Type: application/json
       "description": "Premium Cotton Fabric - Forest Green",
       "quantity": 300,
       "unit": "meters",
-      "unitPrice": 12.50,
+      "unitPrice": 12.5,
       "discount": 5
     }
   ],
@@ -236,9 +238,9 @@ Content-Type: application/json
           "description": "Premium Cotton Fabric - Navy Blue",
           "quantity": 500,
           "unit": "meters",
-          "unitPrice": 12.50,
+          "unitPrice": 12.5,
           "discount": 5,
-          "totalPrice": 5937.50
+          "totalPrice": 5937.5
         },
         {
           "_id": "674b555444333abc22211102",
@@ -250,15 +252,15 @@ Content-Type: application/json
           "description": "Premium Cotton Fabric - Forest Green",
           "quantity": 300,
           "unit": "meters",
-          "unitPrice": 12.50,
+          "unitPrice": 12.5,
           "discount": 5,
-          "totalPrice": 3562.50
+          "totalPrice": 3562.5
         }
       ],
-      "subtotal": 10000.00,
-      "discountAmount": 500.00,
-      "taxAmount": 0.00,
-      "totalAmount": 9500.00,
+      "subtotal": 10000.0,
+      "discountAmount": 500.0,
+      "taxAmount": 0.0,
+      "totalAmount": 9500.0,
       "currency": "USD",
       "status": "draft",
       "validUntil": "2024-12-16T23:59:59.000Z",
@@ -333,17 +335,17 @@ Authorization: Bearer <jwt-token>
           "description": "Premium Cotton Fabric - Navy Blue",
           "quantity": 500,
           "unit": "meters",
-          "unitPrice": 12.50,
+          "unitPrice": 12.5,
           "discount": 5,
-          "discountAmount": 312.50,
-          "totalPrice": 5937.50
+          "discountAmount": 312.5,
+          "totalPrice": 5937.5
         }
       ],
-      "subtotal": 6250.00,
-      "discountAmount": 312.50,
+      "subtotal": 6250.0,
+      "discountAmount": 312.5,
       "taxRate": 0,
-      "taxAmount": 0.00,
-      "totalAmount": 5937.50,
+      "taxAmount": 0.0,
+      "totalAmount": 5937.5,
       "currency": "USD",
       "status": "sent",
       "validUntil": "2024-12-16T23:59:59.000Z",
@@ -429,7 +431,7 @@ Content-Type: application/json
       "description": "Premium Cotton Fabric - Navy Blue (Updated)",
       "quantity": 600,
       "unit": "meters",
-      "unitPrice": 11.50,
+      "unitPrice": 11.5,
       "discount": 7
     }
   ],
@@ -460,15 +462,15 @@ Content-Type: application/json
           "description": "Premium Cotton Fabric - Navy Blue (Updated)",
           "quantity": 600,
           "unit": "meters",
-          "unitPrice": 11.50,
+          "unitPrice": 11.5,
           "discount": 7,
-          "discountAmount": 483.00,
-          "totalPrice": 6417.00
+          "discountAmount": 483.0,
+          "totalPrice": 6417.0
         }
       ],
-      "subtotal": 6900.00,
-      "discountAmount": 483.00,
-      "totalAmount": 6417.00,
+      "subtotal": 6900.0,
+      "discountAmount": 483.0,
+      "totalAmount": 6417.0,
       "status": "draft",
       "updatedBy": {
         "_id": "674b555666777abc88899900",
@@ -540,6 +542,7 @@ Authorization: Bearer <jwt-token>
 **Access:** All authenticated users
 
 **Query Parameters:**
+
 - `download` (optional): Set to true to force download (default: false)
 
 **Success Response (200):**
@@ -675,12 +678,12 @@ Content-Type: application/json
           "description": "Premium Cotton Fabric - Navy Blue",
           "quantity": 500,
           "unit": "meters",
-          "unitPrice": 12.50,
+          "unitPrice": 12.5,
           "discount": 5,
-          "totalPrice": 5937.50
+          "totalPrice": 5937.5
         }
       ],
-      "totalAmount": 5937.50,
+      "totalAmount": 5937.5,
       "status": "draft",
       "validUntil": "2024-12-30T23:59:59.000Z",
       "notes": "Revised quotation based on updated requirements",
@@ -709,17 +712,27 @@ Authorization: Bearer <jwt-token>
     "overview": {
       "total": 50,
       "thisMonth": 15,
-      "totalValue": 125000.00,
-      "averageValue": 2500.00,
+      "totalValue": 125000.0,
+      "averageValue": 2500.0,
       "conversionRate": 16.0,
       "currency": "USD"
     },
     "byStatus": [
-      { "status": "draft", "count": 10, "percentage": 20.0, "value": 25000.00 },
-      { "status": "sent", "count": 25, "percentage": 50.0, "value": 62500.00 },
-      { "status": "accepted", "count": 8, "percentage": 16.0, "value": 20000.00 },
-      { "status": "rejected", "count": 5, "percentage": 10.0, "value": 12500.00 },
-      { "status": "expired", "count": 2, "percentage": 4.0, "value": 5000.00 }
+      { "status": "draft", "count": 10, "percentage": 20.0, "value": 25000.0 },
+      { "status": "sent", "count": 25, "percentage": 50.0, "value": 62500.0 },
+      {
+        "status": "accepted",
+        "count": 8,
+        "percentage": 16.0,
+        "value": 20000.0
+      },
+      {
+        "status": "rejected",
+        "count": 5,
+        "percentage": 10.0,
+        "value": 12500.0
+      },
+      { "status": "expired", "count": 2, "percentage": 4.0, "value": 5000.0 }
     ],
     "timeline": [
       {
@@ -734,7 +747,7 @@ Authorization: Bearer <jwt-token>
       {
         "company": "ABC Garments Ltd",
         "quotationCount": 5,
-        "totalValue": 15000.00
+        "totalValue": 15000.0
       }
     ],
     "responseTime": {
@@ -756,6 +769,7 @@ draft → sent → accepted/rejected/expired
 ```
 
 **Status Definitions:**
+
 - **draft**: Being prepared, not yet sent
 - **sent**: Delivered to customer
 - **accepted**: Customer approved the quotation
@@ -767,6 +781,7 @@ draft → sent → accepted/rejected/expired
 ## Error Responses
 
 ### 400 - Validation Error
+
 ```json
 {
   "success": false,
@@ -779,6 +794,7 @@ draft → sent → accepted/rejected/expired
 ```
 
 ### 403 - Cannot Edit Sent Quotation
+
 ```json
 {
   "success": false,
@@ -787,6 +803,7 @@ draft → sent → accepted/rejected/expired
 ```
 
 ### 404 - Quotation Not Found
+
 ```json
 {
   "success": false,
@@ -805,28 +822,35 @@ draft → sent → accepted/rejected/expired
 const createResponse = await fetch('/api/dashboard/quotations', {
   method: 'POST',
   headers: {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
   },
   body: JSON.stringify({
     enquiryId: '674b123456789abc12345678',
-    customer: { /* customer data */ },
-    items: [ /* quotation items */ ]
-  })
+    customer: {
+      /* customer data */
+    },
+    items: [
+      /* quotation items */
+    ],
+  }),
 });
 
 // Send quotation
-const sendResponse = await fetch('/api/dashboard/quotations/674b777888999abc00011122/send', {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
+const sendResponse = await fetch(
+  '/api/dashboard/quotations/674b777888999abc00011122/send',
+  {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      recipientEmail: 'john@example.com',
+      attachPDF: true,
+    }),
   },
-  body: JSON.stringify({
-    recipientEmail: 'john@example.com',
-    attachPDF: true
-  })
-});
+);
 ```
 
 ### cURL
