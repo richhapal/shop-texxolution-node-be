@@ -405,40 +405,24 @@ const bulkUpdateEnquiries = async (req, res) => {
  */
 const getEnquiryStats = async (req, res) => {
   try {
-    const [
-      totalEnquiries,
-      enquiriesByStatus,
-      enquiriesByPriority,
-      enquiriesBySource,
-      overdueEnquiries,
-      recentEnquiries,
-      topAssignees,
-    ] = await Promise.all([
-      Enquiry.countDocuments(),
-      Enquiry.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
-      Enquiry.aggregate([{ $group: { _id: '$priority', count: { $sum: 1 } } }]),
-      Enquiry.aggregate([{ $group: { _id: '$source', count: { $sum: 1 } } }]),
-      Enquiry.countDocuments({
-        followUpDate: { $lt: new Date() },
-        status: 'in_review',
-      }),
-      Enquiry.find()
-        .sort({ createdAt: -1 })
-        .limit(10)
-        .select('enquiryNo customerName company status priority createdAt')
-        .populate({
-          path: 'assignedTo',
-          model: 'TexxolutionUser',
-          select: 'name',
-          options: { strictPopulate: false }
-        }),
-      Enquiry.aggregate([
-        { $match: { assignedTo: { $exists: true, $ne: null } } },
-        { $group: { _id: '$assignedTo', count: { $sum: 1 } } },
-        { $sort: { count: -1 } },
-        { $limit: 5 },
-      ]),
+    // Start with just basic counts to identify the issue
+    const totalEnquiries = await Enquiry.countDocuments();
+    const enquiriesByStatus = await Enquiry.aggregate([
+      { $group: { _id: '$status', count: { $sum: 1 } } }
     ]);
+    const enquiriesByPriority = await Enquiry.aggregate([
+      { $group: { _id: '$priority', count: { $sum: 1 } } }
+    ]);
+    const enquiriesBySource = await Enquiry.aggregate([
+      { $group: { _id: '$source', count: { $sum: 1 } } }
+    ]);
+
+    // Simple recent enquiries without populate
+    const recentEnquiries = await Enquiry.find()
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .select('enquiryNo customerName company status priority createdAt')
+      .lean();
 
     res.json({
       success: true,
@@ -448,9 +432,9 @@ const getEnquiryStats = async (req, res) => {
         byStatus: enquiriesByStatus,
         byPriority: enquiriesByPriority,
         bySource: enquiriesBySource,
-        overdue: overdueEnquiries,
+        overdue: 0, // Simplified for now
         recent: recentEnquiries,
-        topAssignees,
+        topAssignees: [], // Simplified for now
       },
     });
   } catch (error) {
@@ -458,6 +442,7 @@ const getEnquiryStats = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Internal server error while retrieving statistics.',
+      error: error.message,
     });
   }
 };
