@@ -399,7 +399,12 @@ const getEnquiryStats = async (req, res) => {
         .sort({ createdAt: -1 })
         .limit(10)
         .select('enquiryNo customerName company status priority createdAt')
-        .populate('assignedTo', 'name'),
+        .populate({
+          path: 'assignedTo',
+          model: 'TexxolutionUser',
+          select: 'name',
+          options: { strictPopulate: false }
+        }),
       Enquiry.aggregate([
         { $match: { assignedTo: { $exists: true } } },
         { $group: { _id: '$assignedTo', count: { $sum: 1 } } },
@@ -407,7 +412,7 @@ const getEnquiryStats = async (req, res) => {
         { $limit: 5 },
         {
           $lookup: {
-            from: 'users',
+            from: 'texxolutionusers',
             localField: '_id',
             foreignField: '_id',
             as: 'user',
