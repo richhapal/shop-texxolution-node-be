@@ -19,7 +19,7 @@ const getDashboardEnquiries = async (req, res) => {
 
     // Build filter object
     const filter = {};
-    
+
     if (status && status !== 'all') {
       filter.status = status;
     }
@@ -57,13 +57,13 @@ const getDashboardEnquiries = async (req, res) => {
         path: 'assignedTo',
         model: 'TexxolutionUser',
         select: 'name email',
-        options: { strictPopulate: false }
+        options: { strictPopulate: false },
       })
       .populate({
         path: 'products.productId',
         model: 'TexxolutionProduct',
         select: 'name sku category',
-        options: { strictPopulate: false }
+        options: { strictPopulate: false },
       })
       .lean();
 
@@ -106,25 +106,25 @@ const getEnquiryById = async (req, res) => {
         path: 'assignedTo',
         model: 'TexxolutionUser',
         select: 'name email',
-        options: { strictPopulate: false }
+        options: { strictPopulate: false },
       })
       .populate({
         path: 'products.productId',
         model: 'TexxolutionProduct',
         select: 'name sku category images.main pricing.basePrice',
-        options: { strictPopulate: false }
+        options: { strictPopulate: false },
       })
       .populate({
         path: 'internalNotes.addedBy',
         model: 'TexxolutionUser',
         select: 'name email',
-        options: { strictPopulate: false }
+        options: { strictPopulate: false },
       })
       .populate({
         path: 'communications.handledBy',
         model: 'TexxolutionUser',
         select: 'name email',
-        options: { strictPopulate: false }
+        options: { strictPopulate: false },
       })
       .lean();
 
@@ -241,7 +241,7 @@ const updateEnquiry = async (req, res) => {
       path: 'assignedTo',
       model: 'TexxolutionUser',
       select: 'name email',
-      options: { strictPopulate: false }
+      options: { strictPopulate: false },
     });
 
     res.json({
@@ -325,7 +325,7 @@ const addCommunication = async (req, res) => {
       path: 'communications.handledBy',
       model: 'TexxolutionUser',
       select: 'name email',
-      options: { strictPopulate: false }
+      options: { strictPopulate: false },
     });
 
     res.json({
@@ -408,13 +408,13 @@ const getEnquiryStats = async (req, res) => {
     // Start with just basic counts to identify the issue
     const totalEnquiries = await Enquiry.countDocuments();
     const enquiriesByStatus = await Enquiry.aggregate([
-      { $group: { _id: '$status', count: { $sum: 1 } } }
+      { $group: { _id: '$status', count: { $sum: 1 } } },
     ]);
     const enquiriesByPriority = await Enquiry.aggregate([
-      { $group: { _id: '$priority', count: { $sum: 1 } } }
+      { $group: { _id: '$priority', count: { $sum: 1 } } },
     ]);
     const enquiriesBySource = await Enquiry.aggregate([
-      { $group: { _id: '$source', count: { $sum: 1 } } }
+      { $group: { _id: '$source', count: { $sum: 1 } } },
     ]);
 
     // Simple recent enquiries without populate
