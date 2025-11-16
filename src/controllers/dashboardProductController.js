@@ -806,7 +806,7 @@ const updateProductWithImages = async (req, res) => {
     // Handle image uploads
     const imageUpdates = {};
     const oldImages = [];
-
+    console.log('Files received for update:', req.files);
     // Handle main image update
     if (req.files && req.files.mainImage && req.files.mainImage[0]) {
       try {

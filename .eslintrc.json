@@ -67,12 +67,7 @@
         "src/controllers/**/*.js"
       ],
       "rules": {
-        "no-console": [
-          "error",
-          {
-            "allow": ["warn", "error"]
-          }
-        ]
+        "no-console": ["warnr"]
       }
     },
     {
