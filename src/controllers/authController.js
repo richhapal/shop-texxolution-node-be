@@ -575,6 +575,116 @@ const adminChangePassword = async (req, res) => {
   }
 };
 
+/**
+ * Get all users with pagination (Admin only)
+ * @desc    Get all users with search and filtering
+ * @route   GET /api/dashboard/auth/users
+ * @access  Private (Admin only)
+ */
+const getAllUsers = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      role,
+      status,
+      sort = '-createdAt',
+    } = req.query;
+
+    // Build filter object
+    const filter = {};
+
+    // Search filter (name or email)
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    // Role filter
+    if (role && ['admin', 'editor', 'viewer'].includes(role)) {
+      filter.role = role;
+    }
+
+    // Status filter
+    if (status && ['active', 'inactive'].includes(status)) {
+      filter.status = status;
+    }
+
+    // Build sort object
+    const sortObj = {};
+    if (sort) {
+      const sortFields = sort.split(',');
+      sortFields.forEach(field => {
+        if (field.startsWith('-')) {
+          sortObj[field.slice(1)] = -1;
+        } else {
+          sortObj[field] = 1;
+        }
+      });
+    }
+
+    // Parse pagination parameters
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    // Validate pagination parameters
+    if (pageNumber < 1 || limitNumber < 1 || limitNumber > 100) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid pagination parameters. Page must be >= 1 and limit must be between 1-100.',
+      });
+    }
+
+    // Execute queries in parallel
+    const [users, total] = await Promise.all([
+      User.find(filter)
+        .select('-password -refreshToken') // Exclude sensitive fields
+        .sort(sortObj)
+        .skip(skip)
+        .limit(limitNumber)
+        .lean(),
+      User.countDocuments(filter),
+    ]);
+
+    // Calculate pagination info
+    const totalPages = Math.ceil(total / limitNumber);
+
+    // Build response
+    res.json({
+      success: true,
+      message: 'Users retrieved successfully.',
+      data: {
+        users,
+        pagination: {
+          currentPage: pageNumber,
+          totalPages,
+          totalUsers: total,
+          hasNextPage: pageNumber < totalPages,
+          hasPrevPage: pageNumber > 1,
+          limit: limitNumber,
+          resultsOnPage: users.length,
+        },
+        filters: {
+          search: search || null,
+          role: role || null,
+          status: status || null,
+          sort: sort || '-createdAt',
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Get all users error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error while retrieving users.',
+    });
+  }
+};
+
 module.exports = {
   signup,
   login,
@@ -585,4 +695,5 @@ module.exports = {
   logout,
   assignRole,
   adminChangePassword,
+  getAllUsers,
 };

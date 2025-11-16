@@ -22,6 +22,7 @@ const {
   logout,
   assignRole,
   adminChangePassword,
+  getAllUsers,
 } = require('../../controllers/authController');
 
 const router = express.Router();
@@ -43,6 +44,7 @@ router.post('/change-password', changePassword);
 router.post('/logout', logout);
 
 // Admin-only routes
+router.get('/users', requireAdmin, getAllUsers);
 router.put('/assign-role', requireAdmin, assignRole);
 router.put('/admin/change-password', requireAdmin, adminChangePassword);
 
