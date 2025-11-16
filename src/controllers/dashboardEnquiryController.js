@@ -102,13 +102,30 @@ const getEnquiryById = async (req, res) => {
     const { id } = req.params;
 
     const enquiry = await Enquiry.findById(id)
-      .populate('assignedTo', 'name email department')
-      .populate(
-        'products.productId',
-        'name sku category images.main pricing.basePrice',
-      )
-      .populate('internalNotes.addedBy', 'name email')
-      .populate('communications.handledBy', 'name email')
+      .populate({
+        path: 'assignedTo',
+        model: 'TexxolutionUser',
+        select: 'name email department',
+        options: { strictPopulate: false }
+      })
+      .populate({
+        path: 'products.productId',
+        model: 'TexxolutionProduct',
+        select: 'name sku category images.main pricing.basePrice',
+        options: { strictPopulate: false }
+      })
+      .populate({
+        path: 'internalNotes.addedBy',
+        model: 'TexxolutionUser',
+        select: 'name email',
+        options: { strictPopulate: false }
+      })
+      .populate({
+        path: 'communications.handledBy',
+        model: 'TexxolutionUser',
+        select: 'name email',
+        options: { strictPopulate: false }
+      })
       .lean();
 
     if (!enquiry) {
@@ -220,7 +237,12 @@ const updateEnquiry = async (req, res) => {
     await enquiry.save();
 
     // Populate for response
-    await enquiry.populate('assignedTo', 'name email');
+    await enquiry.populate({
+      path: 'assignedTo',
+      model: 'TexxolutionUser',
+      select: 'name email',
+      options: { strictPopulate: false }
+    });
 
     res.json({
       success: true,
@@ -299,7 +321,12 @@ const addCommunication = async (req, res) => {
     await enquiry.save();
 
     // Populate the newly added communication
-    await enquiry.populate('communications.handledBy', 'name email');
+    await enquiry.populate({
+      path: 'communications.handledBy',
+      model: 'TexxolutionUser',
+      select: 'name email',
+      options: { strictPopulate: false }
+    });
 
     res.json({
       success: true,
