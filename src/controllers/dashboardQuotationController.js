@@ -1,4 +1,22 @@
-/* eslint-disable consistent-return */
+/* eslint-d    const {
+      page = 1,
+      limit = 10,
+      sort = '-createdAt',
+      status,
+      createdBy,
+      enquiryId,
+      search,
+      dateFrom,
+      dateTo,
+      expiringIn,
+    } = req.query;
+
+    // Build filter object
+    const filter = {};
+
+    if (status) filter.status = status;
+    if (createdBy) filter.createdBy = createdBy;
+    if (enquiryId) filter.enquiryId = enquiryId;-return */
 const Quotation = require('../models/Quotation');
 const Enquiry = require('../models/Enquiry');
 const Product = require('../models/Product');
@@ -230,6 +248,21 @@ const createQuotation = async (req, res) => {
 
     const quotation = await Quotation.create(quotationData);
 
+    // Update enquiry status and add activity log
+    enquiry.status = 'quoted';
+    enquiry.activities.push({
+      type: 'quotation_created',
+      description: `Quotation ${quotation.quotationNo} created for this enquiry`,
+      performedBy: req.user._id,
+      metadata: {
+        quotationId: quotation._id,
+        quotationNo: quotation.quotationNo,
+        oldStatus: 'in_review',
+        newStatus: 'quoted',
+      },
+    });
+    await enquiry.save();
+
     // Populate for response
     await quotation.populate([
       { path: 'enquiryId', select: 'enquiryNo' },
@@ -271,6 +304,15 @@ const updateQuotation = async (req, res) => {
     const { id } = req.params;
     const updateData = { ...req.body };
 
+    // Get current quotation to track status changes
+    const currentQuotation = await Quotation.findById(id);
+    if (!currentQuotation) {
+      return res.status(404).json({
+        success: false,
+        message: 'Quotation not found.',
+      });
+    }
+
     // Remove fields that shouldn't be updated directly
     delete updateData._id;
     delete updateData.quotationNo;
@@ -279,6 +321,11 @@ const updateQuotation = async (req, res) => {
 
     // Add modifiedBy for revision tracking
     updateData.modifiedBy = req.user._id;
+
+    // Check if status is being updated
+    const statusChanged = updateData.status && updateData.status !== currentQuotation.status;
+    const oldStatus = currentQuotation.status;
+    const newStatus = updateData.status;
 
     const quotation = await Quotation.findByIdAndUpdate(id, updateData, {
       new: true,
@@ -289,11 +336,45 @@ const updateQuotation = async (req, res) => {
       { path: 'products.productId', select: 'name sku category' },
     ]);
 
-    if (!quotation) {
-      return res.status(404).json({
-        success: false,
-        message: 'Quotation not found.',
-      });
+    // Handle status change activities and enquiry updates
+    if (statusChanged) {
+      const enquiry = await Enquiry.findById(quotation.enquiryId);
+      if (enquiry) {
+        let activityType = 'status_updated';
+        let description = `Quotation ${quotation.quotationNo} status updated from ${oldStatus} to ${newStatus}`;
+        let enquiryStatusUpdate = null;
+
+        // Handle specific status changes
+        if (newStatus === 'accepted') {
+          activityType = 'quotation_accepted';
+          description = `Quotation ${quotation.quotationNo} was accepted by customer`;
+          enquiryStatusUpdate = 'closed';
+        } else if (newStatus === 'declined') {
+          activityType = 'quotation_rejected';
+          description = `Quotation ${quotation.quotationNo} was rejected by customer`;
+          enquiryStatusUpdate = 'rejected';
+        }
+
+        // Add activity log
+        enquiry.activities.push({
+          type: activityType,
+          description,
+          performedBy: req.user._id,
+          metadata: {
+            quotationId: quotation._id,
+            quotationNo: quotation.quotationNo,
+            oldStatus,
+            newStatus,
+          },
+        });
+
+        // Update enquiry status if needed
+        if (enquiryStatusUpdate) {
+          enquiry.status = enquiryStatusUpdate;
+        }
+
+        await enquiry.save();
+      }
     }
 
     res.json({
@@ -503,6 +584,21 @@ const sendQuotation = async (req, res) => {
 
     // Mark as sent
     await quotation.markAsSent(req.user._id);
+
+    // Add activity log to enquiry
+    const enquiry = await Enquiry.findById(quotation.enquiryId);
+    if (enquiry) {
+      enquiry.activities.push({
+        type: 'quotation_sent',
+        description: `Quotation ${quotation.quotationNo} sent to customer`,
+        performedBy: req.user._id,
+        metadata: {
+          quotationId: quotation._id,
+          quotationNo: quotation.quotationNo,
+        },
+      });
+      await enquiry.save();
+    }
 
     // In a real application, you would send an email here
     // await emailService.sendQuotation(quotation);

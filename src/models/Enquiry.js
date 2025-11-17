@@ -78,7 +78,7 @@ const EnquirySchema = new Schema(
     // Status management
     status: {
       type: String,
-      enum: ['new', 'in_review', 'approved', 'rejected'],
+      enum: ['new', 'in_review', 'quoted', 'approved', 'rejected', 'closed'],
       default: 'new',
       index: true,
     },
@@ -158,6 +158,40 @@ const EnquirySchema = new Schema(
         communicatedAt: {
           type: Date,
           default: Date.now,
+        },
+      },
+    ],
+
+    // Activity tracking for quotation workflow
+    activities: [
+      {
+        type: {
+          type: String,
+          enum: ['quotation_created', 'quotation_sent', 'quotation_accepted', 'quotation_rejected', 'status_updated', 'other'],
+          required: true,
+        },
+        description: {
+          type: String,
+          required: true,
+          maxlength: 500,
+        },
+        performedBy: {
+          type: Schema.Types.ObjectId,
+          ref: 'User',
+          required: true,
+        },
+        performedAt: {
+          type: Date,
+          default: Date.now,
+        },
+        metadata: {
+          quotationId: {
+            type: Schema.Types.ObjectId,
+            ref: 'Quotation',
+          },
+          quotationNo: String,
+          oldStatus: String,
+          newStatus: String,
         },
       },
     ],
