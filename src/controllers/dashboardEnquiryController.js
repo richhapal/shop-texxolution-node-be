@@ -12,6 +12,7 @@ const getDashboardEnquiries = async (req, res) => {
       limit = 10,
       status,
       priority,
+      assignedTo,
       search,
       sortBy = 'createdAt',
       order = 'desc',
@@ -26,6 +27,16 @@ const getDashboardEnquiries = async (req, res) => {
 
     if (priority && priority !== 'all') {
       filter.priority = priority;
+    }
+
+    if (assignedTo && assignedTo !== 'all') {
+      if (assignedTo === 'unassigned') {
+        // Filter for enquiries that are not assigned to anyone
+        filter.assignedTo = { $in: [null, undefined] };
+      } else {
+        // Filter for enquiries assigned to a specific user ID
+        filter.assignedTo = assignedTo;
+      }
     }
 
     if (search) {
