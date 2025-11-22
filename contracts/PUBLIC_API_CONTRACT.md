@@ -6,6 +6,34 @@ This document outlines the public-facing API endpoints for the Shop Texxolution 
 
 **Base URL:** `https://your-domain.com/api/public`
 
+## Units and Category Rules (NEW)
+
+All product items in public enquiries must include a mandatory `unit` field. Units are restricted by product category. Allowed units mapping:
+
+- Yarn: ["kg", "cones"]
+- Garments: ["pcs", "dz"]
+- Denim: ["m", "yards", "rolls"]
+- Greige Fabric: ["m", "yards", "rolls", "kg"]
+- Finished Fabrics: ["m", "yards", "rolls"]
+- Fabric (Finished): ["m", "yards", "rolls"]
+- Fibre: ["kg", "bales", "tons"]
+- Textile Farming: ["kg", "quintal", "bales", "tons"]
+- Home Decoration: ["pcs", "sets", "m"]
+- Trims & Accessories: ["pcs", "m", "rolls", "sets"]
+- Packing: ["pcs", "kg", "sets"]
+- Dyes & Chemicals: ["kg", "liters", "tons", "drums"]
+- Machineries & Equipment: ["pcs", "units", "sets"]
+
+If the `unit` is missing or invalid for the product category, the API returns HTTP 400 with:
+
+```json
+{
+  "success": false,
+  "message": "Invalid unit for category <category>. Allowed units: <units[]>"
+}
+```
+
+
 ## Authentication
 
 Public endpoints do not require authentication, but some may have rate limiting applied.
@@ -190,13 +218,19 @@ Content-Type: application/json
 
 ```json
 {
-  "name": "John Doe",
+  "customerName": "John Doe",
   "email": "john@example.com",
   "phone": "+1234567890",
   "company": "ABC Garments Ltd",
-  "productId": "674b123456789abc12345678",
   "message": "I'm interested in bulk purchasing this fabric.",
-  "quantity": "500 meters",
+  "products": [
+    {
+      "productId": "674b123456789abc12345678",
+      "quantity": 500,
+      "unit": "m",
+      "notes": "Optional notes about product"
+    }
+  ],
   "urgency": "medium"
 }
 ```
@@ -221,7 +255,15 @@ Content-Type: application/json
         "sku": "TEX-001"
       },
       "message": "I'm interested in bulk purchasing this fabric.",
-      "quantity": "500 meters",
+      "products": [
+        {
+          "_id": "674b123456789abc12345678",
+          "name": "Premium Cotton Fabric",
+          "sku": "TEX-001",
+          "quantity": 500,
+          "unit": "m"
+        }
+      ],
       "urgency": "medium",
       "status": "new",
       "submittedAt": "2024-11-16T10:30:00.000Z"

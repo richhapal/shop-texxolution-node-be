@@ -43,6 +43,11 @@ const QuotationSchema = new Schema(
         'Please enter a valid email address',
       ],
     },
+     deliveryTime: {
+          type: String,
+          required: true,
+          trim: true,
+        },
 
     // Product quotation details
     products: [
@@ -71,11 +76,6 @@ const QuotationSchema = new Schema(
           type: Number,
           required: true,
           min: 0,
-        },
-        deliveryTime: {
-          type: String,
-          required: true,
-          trim: true,
         },
         discount: {
           type: Number,

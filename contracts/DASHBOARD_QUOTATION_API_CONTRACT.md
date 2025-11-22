@@ -6,6 +6,34 @@ This document outlines the quotation management API endpoints for the Shop Texxo
 
 **Base URL:** `https://your-domain.com/api/dashboard/quotations`
 
+## Units and Category Rules (NEW)
+
+All product items in enquiries and quotations must include a mandatory `unit` field. Units are restricted by product category. Below is the allowed units mapping:
+
+- Yarn: ["kg", "cones"]
+- Garments: ["pcs", "dz"]
+- Denim: ["m", "yards", "rolls"]
+- Greige Fabric: ["m", "yards", "rolls", "kg"]
+- Finished Fabrics: ["m", "yards", "rolls"]
+- Fabric (Finished): ["m", "yards", "rolls"]
+- Fibre: ["kg", "bales", "tons"]
+- Textile Farming: ["kg", "quintal", "bales", "tons"]
+- Home Decoration: ["pcs", "sets", "m"]
+- Trims & Accessories: ["pcs", "m", "rolls", "sets"]
+- Packing: ["pcs", "kg", "sets"]
+- Dyes & Chemicals: ["kg", "liters", "tons", "drums"]
+- Machineries & Equipment: ["pcs", "units", "sets"]
+
+If a request omits `unit` or provides a unit not in the allowed list for the product's category, the API will respond with HTTP 400 and:
+
+```json
+{
+  "success": false,
+  "message": "Invalid unit for category <category>. Allowed units: <units[]>"
+}
+```
+
+
 ## Authentication
 
 All endpoints require a valid JWT token in the Authorization header:

@@ -158,6 +158,7 @@ const createQuotation = async (req, res) => {
       shippingMethod,
       paymentTerms = '30_days',
       customPaymentTerms,
+      deliveryTime,
     } = req.body;
 
     // Validation
@@ -170,6 +171,13 @@ const createQuotation = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Enquiry ID and products array are required.',
+      });
+    }
+
+    if(!deliveryTime) {
+      return res.status(400).json({
+        success: false,
+        message: 'Delivery time is required.',
       });
     }
 
@@ -197,8 +205,7 @@ const createQuotation = async (req, res) => {
       if (
         !product.productId ||
         !product.unitPrice ||
-        !product.quantity ||
-        !product.deliveryTime
+        !product.quantity
       ) {
         return res.status(400).json({
           success: false,

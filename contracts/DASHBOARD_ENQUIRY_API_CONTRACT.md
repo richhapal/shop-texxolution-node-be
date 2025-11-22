@@ -6,6 +6,34 @@ This document outlines the enquiry management API endpoints for the Shop Texxolu
 
 **Base URL:** `https://your-domain.com/api/dashboard/enquiries`
 
+## Units and Category Rules (NEW)
+
+All product items in enquiries and quotations must include a mandatory `unit` field. Units are restricted by product category. Below is the allowed units mapping:
+
+- Yarn: ["kg", "cones"]
+- Garments: ["pcs", "dz"]
+- Denim: ["m", "yards", "rolls"]
+- Greige Fabric: ["m", "yards", "rolls", "kg"]
+- Finished Fabrics: ["m", "yards", "rolls"]
+- Fabric (Finished): ["m", "yards", "rolls"]
+- Fibre: ["kg", "bales", "tons"]
+- Textile Farming: ["kg", "quintal", "bales", "tons"]
+- Home Decoration: ["pcs", "sets", "m"]
+- Trims & Accessories: ["pcs", "m", "rolls", "sets"]
+- Packing: ["pcs", "kg", "sets"]
+- Dyes & Chemicals: ["kg", "liters", "tons", "drums"]
+- Machineries & Equipment: ["pcs", "units", "sets"]
+
+If a request omits `unit` or provides a unit not in the allowed list for the product's category, the API will respond with HTTP 400 and:
+
+```json
+{
+  "success": false,
+  "message": "Invalid unit for category <category>. Allowed units: <units[]>"
+}
+```
+
+
 ## Authentication
 
 All endpoints require a valid JWT token in the Authorization header:
@@ -82,14 +110,17 @@ Authorization: Bearer <jwt-token>
         "email": "john@example.com",
         "phone": "+1234567890",
         "company": "ABC Garments Ltd",
-        "product": {
-          "_id": "674b987654321abc87654321",
-          "name": "Premium Cotton Fabric",
-          "sku": "TEX-001",
-          "category": "Fabrics"
-        },
+        "products": [
+          {
+            "_id": "674b987654321abc87654321",
+            "name": "Premium Cotton Fabric",
+            "sku": "TEX-001",
+            "category": "Fabric (Finished)",
+            "quantity": 500,
+            "unit": "m"
+          }
+        ],
         "message": "I'm interested in bulk purchasing this fabric for our upcoming collection.",
-        "quantity": "500 meters",
         "urgency": "medium",
         "status": "new",
         "source": "website",
