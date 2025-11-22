@@ -255,6 +255,22 @@ const createQuotation = async (req, res) => {
     }
 
     // Prepare quotation data
+    // Normalize terms: accept object or string and convert to object
+    let normalizedTerms = {
+      paymentTerms: '',
+      deliveryTerms: '',
+      warranty: '',
+      leadTime: '',
+    };
+    if (terms && typeof terms === 'object') {
+      normalizedTerms.paymentTerms = (terms.paymentTerms || '').trim();
+      normalizedTerms.deliveryTerms = (terms.deliveryTerms || '').trim();
+      normalizedTerms.warranty = (terms.warranty || '').trim();
+      normalizedTerms.leadTime = (terms.leadTime || '').trim();
+    } else if (typeof terms === 'string') {
+      // If frontend sent a single string, store it in deliveryTerms for now
+      normalizedTerms.deliveryTerms = terms.trim();
+    }
     const quotationData = {
       enquiryId,
       customerName: enquiry.customerName,
@@ -262,7 +278,7 @@ const createQuotation = async (req, res) => {
       email: enquiry.email,
       products: quotationProducts,
       validUntil: new Date(validUntil),
-      terms: terms.trim(),
+      terms: normalizedTerms,
       currency,
       taxRate: parseFloat(taxRate),
       shippingCost: parseFloat(shippingCost),
@@ -348,6 +364,26 @@ const updateQuotation = async (req, res) => {
 
     // Add modifiedBy for revision tracking
     updateData.modifiedBy = req.user._id;
+
+    // Normalize terms in updateData if provided
+    if (Object.prototype.hasOwnProperty.call(updateData, 'terms')) {
+      const t = updateData.terms;
+      const normalized = {
+        paymentTerms: '',
+        deliveryTerms: '',
+        warranty: '',
+        leadTime: '',
+      };
+      if (t && typeof t === 'object') {
+        normalized.paymentTerms = (t.paymentTerms || '').trim();
+        normalized.deliveryTerms = (t.deliveryTerms || '').trim();
+        normalized.warranty = (t.warranty || '').trim();
+        normalized.leadTime = (t.leadTime || '').trim();
+      } else if (typeof t === 'string') {
+        normalized.deliveryTerms = t.trim();
+      }
+      updateData.terms = normalized;
+    }
 
     // Check if status is being updated
     const statusChanged =

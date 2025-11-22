@@ -98,10 +98,30 @@ const QuotationSchema = new Schema(
       index: true,
     },
     terms: {
-      type: String,
-      required: true,
-      trim: true,
-      maxlength: 3000,
+      paymentTerms: {
+        type: String,
+        trim: true,
+        maxlength: 500,
+        default: '',
+      },
+      deliveryTerms: {
+        type: String,
+        trim: true,
+        maxlength: 1000,
+        default: '',
+      },
+      warranty: {
+        type: String,
+        trim: true,
+        maxlength: 1000,
+        default: '',
+      },
+      leadTime: {
+        type: String,
+        trim: true,
+        maxlength: 200,
+        default: '',
+      },
     },
 
     // Document management
