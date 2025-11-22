@@ -46,7 +46,7 @@ const EnquirySchema = new Schema(
       {
         productId: {
           type: Schema.Types.ObjectId,
-          ref: 'Product',
+          ref: 'TexxolutionProduct',
           required: true,
         },
         productName: {
