@@ -323,7 +323,8 @@ const updateQuotation = async (req, res) => {
     updateData.modifiedBy = req.user._id;
 
     // Check if status is being updated
-    const statusChanged = updateData.status && updateData.status !== currentQuotation.status;
+    const statusChanged =
+      updateData.status && updateData.status !== currentQuotation.status;
     const oldStatus = currentQuotation.status;
     const newStatus = updateData.status;
 

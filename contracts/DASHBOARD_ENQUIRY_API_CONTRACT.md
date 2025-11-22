@@ -20,6 +20,27 @@ Authorization: Bearer <jwt-token>
 - **editor**: Create, read, update enquiries and quotations
 - **viewer**: Read-only access to enquiries
 
+## New Features - Quotation Integration
+
+**Enhanced Activity Tracking:** Enquiries now include an `activities` array that automatically logs quotation workflow actions:
+
+- `quotation_created` - When a quotation is created for the enquiry
+- `quotation_sent` - When a quotation is sent to the customer
+- `quotation_accepted` - When customer accepts the quotation
+- `quotation_rejected` - When customer rejects the quotation
+- `status_updated` - General status changes
+
+**Enhanced Status Management:**
+
+- Status values: `new`, `in_review`, `quoted`, `approved`, `rejected`, `closed`
+- Automatic status updates based on quotation lifecycle
+- `quoted` - Set when quotation is created
+- `closed` - Set when quotation is accepted
+
+**Query Enhancements:**
+
+- `assignedTo` filter now supports filtering by specific user or "unassigned"
+
 ---
 
 ## Endpoints
@@ -38,7 +59,7 @@ Authorization: Bearer <jwt-token>
 - `page` (optional): Page number (default: 1)
 - `limit` (optional): Items per page (default: 20, max: 100)
 - `sort` (optional): Sort field (default: -createdAt)
-- `status` (optional): Filter by status (new, in-progress, quoted, closed, rejected)
+- `status` (optional): Filter by status (new, in_review, quoted, approved, rejected, closed) - **UPDATED**
 - `urgency` (optional): Filter by urgency (low, medium, high, urgent)
 - `search` (optional): Search by name, email, company, or enquiry ID
 - `productId` (optional): Filter by specific product
@@ -219,13 +240,19 @@ Authorization: Bearer <jwt-token>
       "activities": [
         {
           "_id": "674b333444555abc66677788",
-          "type": "status_changed",
-          "description": "Status changed from 'new' to 'in-progress'",
+          "type": "quotation_created",
+          "description": "Quotation QUO-2024-001 created for this enquiry",
           "performedBy": {
             "_id": "674b555666777abc88899900",
             "name": "Sales Manager"
           },
-          "performedAt": "2024-11-16T11:00:00.000Z"
+          "performedAt": "2024-11-16T11:00:00.000Z",
+          "metadata": {
+            "quotationId": "674b777888999abc00011123",
+            "quotationNo": "QUO-2024-001",
+            "oldStatus": "in_review",
+            "newStatus": "quoted"
+          }
         },
         {
           "_id": "674b333444555abc66677789",
@@ -235,7 +262,27 @@ Authorization: Bearer <jwt-token>
             "_id": "674b555666777abc88899900",
             "name": "Sales Manager"
           },
-          "performedAt": "2024-11-17T09:00:00.000Z"
+          "performedAt": "2024-11-17T09:00:00.000Z",
+          "metadata": {
+            "quotationId": "674b777888999abc00011123",
+            "quotationNo": "QUO-2024-001"
+          }
+        },
+        {
+          "_id": "674b333444555abc66677790",
+          "type": "quotation_accepted",
+          "description": "Quotation QUO-2024-001 was accepted by customer",
+          "performedBy": {
+            "_id": "674b555666777abc88899900",
+            "name": "Sales Manager"
+          },
+          "performedAt": "2024-11-18T14:30:00.000Z",
+          "metadata": {
+            "quotationId": "674b777888999abc00011123",
+            "quotationNo": "QUO-2024-001",
+            "oldStatus": "sent",
+            "newStatus": "accepted"
+          }
         }
       ],
       "followUpDate": "2024-11-20T10:00:00.000Z",

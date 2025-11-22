@@ -40,10 +40,11 @@ Authorization: Bearer <jwt-token>
 - `sort` (optional): Sort field (default: -createdAt)
 - `status` (optional): Filter by status (draft, sent, accepted, rejected, expired)
 - `search` (optional): Search by quotation ID, customer name, or company
-- `enquiryId` (optional): Filter by enquiry ID
+- `enquiryId` (optional): **NEW** - Filter quotations by specific enquiry ID
 - `dateFrom` (optional): Filter from date (YYYY-MM-DD)
 - `dateTo` (optional): Filter to date (YYYY-MM-DD)
 - `createdBy` (optional): Filter by creator user ID
+- `expiringIn` (optional): Filter quotations expiring within X days
 - `minAmount` (optional): Minimum total amount
 - `maxAmount` (optional): Maximum total amount
 
@@ -151,6 +152,12 @@ Content-Type: application/json
 ```
 
 **Access:** Admin, Editor
+
+**NEW BEHAVIOR:**
+
+- Automatically updates linked enquiry status to "quoted"
+- Logs "quotation_created" activity in enquiry.activities array
+- Generates auto-incremented quotation number
 
 **Request Body:**
 
@@ -420,6 +427,13 @@ Content-Type: application/json
 
 **Access:** Admin, Editor
 
+**NEW BEHAVIOR:**
+
+- Automatically logs activity when quotation status changes
+- Updates linked enquiry status to "closed" when quotation status = "accepted"
+- Updates linked enquiry status to "rejected" when quotation status = "declined"
+- Tracks status change history in enquiry.activities array
+
 **Request Body:**
 
 ```json
@@ -491,6 +505,12 @@ Content-Type: application/json
 ```
 
 **Access:** Admin, Editor
+
+**NEW BEHAVIOR:**
+
+- Updates quotation status to "sent"
+- Logs "quotation_sent" activity in linked enquiry.activities array
+- Records sentAt timestamp and sentBy user
 
 **Request Body:**
 

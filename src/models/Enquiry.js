@@ -167,7 +167,14 @@ const EnquirySchema = new Schema(
       {
         type: {
           type: String,
-          enum: ['quotation_created', 'quotation_sent', 'quotation_accepted', 'quotation_rejected', 'status_updated', 'other'],
+          enum: [
+            'quotation_created',
+            'quotation_sent',
+            'quotation_accepted',
+            'quotation_rejected',
+            'status_updated',
+            'other',
+          ],
           required: true,
         },
         description: {
