@@ -59,6 +59,11 @@ const EnquirySchema = new Schema(
           required: true,
           min: 1,
         },
+        unit: {
+          type: String,
+          required: true,
+          trim: true,
+        },
         notes: {
           type: String,
           trim: true,

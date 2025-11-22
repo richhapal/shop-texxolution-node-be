@@ -1,6 +1,7 @@
 /* eslint-disable consistent-return */
 const Enquiry = require('../models/Enquiry');
 const Product = require('../models/Product');
+const categoryUnits = require('../../config/categoryUnits');
 
 /**
  * Create new enquiry from public form
@@ -59,10 +60,29 @@ const createEnquiry = async (req, res) => {
         });
       }
 
+      // Validate unit presence and value against category rules
+      const category = productExists.category;
+      const allowed = categoryUnits[category] || [];
+      const providedUnit = product.unit && String(product.unit).trim();
+      if (!providedUnit) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid unit for category ${category}. Allowed units: ${JSON.stringify(allowed)}`,
+        });
+      }
+
+      if (!allowed.includes(providedUnit)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid unit for category ${category}. Allowed units: ${JSON.stringify(allowed)}`,
+        });
+      }
+
       productValidation.push({
         productId: product.productId,
         productName: productExists.name,
         quantity: parseInt(product.quantity),
+        unit: providedUnit,
         notes: product.notes || '',
       });
     }

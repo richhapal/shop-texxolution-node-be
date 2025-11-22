@@ -298,7 +298,7 @@ const ProductSchema = new Schema(
       currency: {
         type: String,
         required: true,
-        default: 'USD',
+        default: 'INR',
         enum: ['USD', 'EUR', 'INR', 'GBP'],
       },
       discountPercent: {

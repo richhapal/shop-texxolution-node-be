@@ -20,6 +20,7 @@
 const Quotation = require('../models/Quotation');
 const Enquiry = require('../models/Enquiry');
 const Product = require('../models/Product');
+const categoryUnits = require('../../config/categoryUnits');
 const { uploadFileFromPath, validateFile } = require('../utils/cloudflareR2');
 
 /**
@@ -151,7 +152,7 @@ const createQuotation = async (req, res) => {
       products,
       validUntil,
       terms,
-      currency = 'USD',
+      currency = 'INR',
       taxRate = 0,
       shippingCost = 0,
       shippingMethod,
@@ -216,10 +217,29 @@ const createQuotation = async (req, res) => {
         });
       }
 
+      // Validate unit presence and value against category rules
+      const category = productExists.category;
+      const allowed = categoryUnits[category] || [];
+      const providedUnit = product.unit && String(product.unit).trim();
+      if (!providedUnit) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid unit for category ${category}. Allowed units: ${JSON.stringify(allowed)}`,
+        });
+      }
+
+      if (!allowed.includes(providedUnit)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid unit for category ${category}. Allowed units: ${JSON.stringify(allowed)}`,
+        });
+      }
+
       quotationProducts.push({
         productId: product.productId,
         productName: productExists.name,
         quantity: parseInt(product.quantity),
+        unit: providedUnit || undefined,
         unitPrice: parseFloat(product.unitPrice),
         deliveryTime: product.deliveryTime.trim(),
         discount: parseFloat(product.discount) || 0,
@@ -327,6 +347,41 @@ const updateQuotation = async (req, res) => {
       updateData.status && updateData.status !== currentQuotation.status;
     const oldStatus = currentQuotation.status;
     const newStatus = updateData.status;
+
+    // If products are being updated, validate units for each product
+    if (updateData.products && Array.isArray(updateData.products)) {
+      for (let i = 0; i < updateData.products.length; i++) {
+        const p = updateData.products[i];
+        if (p.productId) {
+          const productExists = await Product.findById(p.productId).select(
+            'category',
+          );
+          if (!productExists) {
+            return res.status(400).json({
+              success: false,
+              message: `Product with ID ${p.productId} not found.`,
+            });
+          }
+          const category = productExists.category;
+          const allowed = categoryUnits[category] || [];
+          const providedUnit = p.unit && String(p.unit).trim();
+          if (!providedUnit) {
+            return res.status(400).json({
+              success: false,
+              message: `Invalid unit for category ${category}. Allowed units: ${JSON.stringify(allowed)}`,
+            });
+          }
+          if (!allowed.includes(providedUnit)) {
+            return res.status(400).json({
+              success: false,
+              message: `Invalid unit for category ${category}. Allowed units: ${JSON.stringify(
+                allowed,
+              )}`,
+            });
+          }
+        }
+      }
+    }
 
     const quotation = await Quotation.findByIdAndUpdate(id, updateData, {
       new: true,

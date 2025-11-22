@@ -62,6 +62,11 @@ const QuotationSchema = new Schema(
           required: true,
           min: 1,
         },
+        unit: {
+          type: String,
+          required: true,
+          trim: true,
+        },
         unitPrice: {
           type: Number,
           required: true,
@@ -124,7 +129,7 @@ const QuotationSchema = new Schema(
     currency: {
       type: String,
       required: true,
-      default: 'USD',
+      default: 'INR',
       enum: ['USD', 'EUR', 'INR', 'GBP'],
     },
 
