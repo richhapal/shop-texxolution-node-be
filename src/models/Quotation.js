@@ -142,7 +142,7 @@ const QuotationSchema = new Schema(
     // Creator information
     createdBy: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'TexxolutionUser',
       required: true,
     },
 
@@ -202,7 +202,7 @@ const QuotationSchema = new Schema(
         modifiedAt: Date,
         modifiedBy: {
           type: Schema.Types.ObjectId,
-          ref: 'User',
+          ref: 'TexxolutionUser',
         },
         changes: String,
       },
@@ -214,7 +214,7 @@ const QuotationSchema = new Schema(
     },
     sentBy: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'TexxolutionUser',
     },
     viewedAt: {
       type: Date,

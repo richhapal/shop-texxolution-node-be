@@ -91,7 +91,7 @@ const EnquirySchema = new Schema(
     // Assignment and tracking
     assignedTo: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'TexxolutionUser',
     },
 
     // Additional metadata
@@ -123,7 +123,7 @@ const EnquirySchema = new Schema(
         },
         addedBy: {
           type: Schema.Types.ObjectId,
-          ref: 'User',
+          ref: 'TexxolutionUser',
           required: true,
         },
         addedAt: {
@@ -158,7 +158,7 @@ const EnquirySchema = new Schema(
         },
         handledBy: {
           type: Schema.Types.ObjectId,
-          ref: 'User',
+          ref: 'TexxolutionUser',
         },
         communicatedAt: {
           type: Date,
@@ -189,7 +189,7 @@ const EnquirySchema = new Schema(
         },
         performedBy: {
           type: Schema.Types.ObjectId,
-          ref: 'User',
+          ref: 'TexxolutionUser',
           required: true,
         },
         performedAt: {

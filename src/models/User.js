@@ -119,11 +119,11 @@ const UserSchema = new Schema(
     // Audit fields
     createdBy: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'TexxolutionUser',
     },
     updatedBy: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'TexxolutionUser',
     },
   },
   {
