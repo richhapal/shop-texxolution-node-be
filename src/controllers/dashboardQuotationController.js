@@ -174,6 +174,8 @@ const createQuotation = async (req, res) => {
       });
     }
 
+    console.log('what is deliveryTime', {deliveryTime})
+
     if(!deliveryTime) {
       return res.status(400).json({
         success: false,
@@ -248,7 +250,6 @@ const createQuotation = async (req, res) => {
         quantity: parseInt(product.quantity),
         unit: providedUnit || undefined,
         unitPrice: parseFloat(product.unitPrice),
-        deliveryTime: product.deliveryTime.trim(),
         discount: parseFloat(product.discount) || 0,
         notes: product.notes || '',
       });
@@ -262,7 +263,10 @@ const createQuotation = async (req, res) => {
       warranty: '',
       leadTime: '',
     };
+
+    console.log('what is term', terms)
     if (terms && typeof terms === 'object') {
+      
       normalizedTerms.paymentTerms = (terms.paymentTerms || '').trim();
       normalizedTerms.deliveryTerms = (terms.deliveryTerms || '').trim();
       normalizedTerms.warranty = (terms.warranty || '').trim();
@@ -287,6 +291,7 @@ const createQuotation = async (req, res) => {
       customPaymentTerms: customPaymentTerms || '',
       status: 'draft',
       createdBy: req.user._id,
+      deliveryTime: deliveryTime || '10 Days'
     };
 
     const quotation = await Quotation.create(quotationData);

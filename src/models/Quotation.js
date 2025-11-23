@@ -12,6 +12,12 @@ const QuotationSchema = new Schema(
       index: true,
     },
 
+     deliveryTime: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+
     // Quotation identification
     quotationNo: {
       type: String,
@@ -43,11 +49,6 @@ const QuotationSchema = new Schema(
         'Please enter a valid email address',
       ],
     },
-     deliveryTime: {
-          type: String,
-          required: true,
-          trim: true,
-        },
 
     // Product quotation details
     products: [
