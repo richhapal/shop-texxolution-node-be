@@ -7,7 +7,7 @@ const QuotationSchema = new Schema(
     // Reference to enquiry
     enquiryId: {
       type: Schema.Types.ObjectId,
-      ref: 'Enquiry',
+      ref: 'TexxolutionEnquiry',
       required: true,
       index: true,
     },
