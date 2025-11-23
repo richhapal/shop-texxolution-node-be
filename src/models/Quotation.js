@@ -246,7 +246,7 @@ const QuotationSchema = new Schema(
         },
         addedBy: {
           type: Schema.Types.ObjectId,
-          ref: 'User',
+          ref: 'TexxolutionUser',
           required: true,
         },
         addedAt: {
