@@ -34,6 +34,7 @@ const getDashboardQuotations = async (req, res) => {
       sort = '-createdAt',
       status,
       createdBy,
+      enquiryId,
       search,
       dateFrom,
       dateTo,
@@ -45,6 +46,7 @@ const getDashboardQuotations = async (req, res) => {
 
     if (status) filter.status = status;
     if (createdBy) filter.createdBy = createdBy;
+    if (enquiryId) filter.enquiryId = enquiryId;
 
     // Date range filter
     if (dateFrom || dateTo) {
