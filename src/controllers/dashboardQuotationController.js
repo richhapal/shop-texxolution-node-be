@@ -232,6 +232,7 @@ const createQuotation = async (req, res) => {
       const category = productExists.category;
       const allowed = categoryUnits[category] || [];
       const providedUnit = product.unit && String(product.unit).trim();
+      console.log('what is provideUnit', {providedUnit})
       if (!providedUnit) {
         return res.status(400).json({
           success: false,
@@ -255,6 +256,7 @@ const createQuotation = async (req, res) => {
         discount: parseFloat(product.discount) || 0,
         notes: product.notes || '',
       });
+      console.log('what is quotationProducts', quotationProducts);
     }
 
     // Prepare quotation data
@@ -298,20 +300,25 @@ const createQuotation = async (req, res) => {
 
     const quotation = await Quotation.create(quotationData);
 
-    // Update enquiry status and add activity log
-    enquiry.status = 'quoted';
-    enquiry.activities.push({
+    // Update enquiry status and add activity log using atomic update
+    const activity = {
       type: 'quotation_created',
       description: `Quotation ${quotation.quotationNo} created for this enquiry`,
       performedBy: req.user._id,
       metadata: {
         quotationId: quotation._id,
         quotationNo: quotation.quotationNo,
-        oldStatus: 'in_review',
+        oldStatus: enquiry.status || 'in_review',
         newStatus: 'quoted',
       },
-    });
-    await enquiry.save();
+      performedAt: new Date(),
+    };
+
+    await Enquiry.findByIdAndUpdate(
+      enquiryId,
+      { $set: { status: 'quoted' }, $push: { activities: activity } },
+      { new: true }
+    );
 
     // Populate for response
     await quotation.populate([
